@@ -50,6 +50,12 @@
 
 ;; config changes made through the customize UI will be store here
 (setq custom-file (expand-file-name "custom.el" jonatan-personal-dir))
+
+;; load the personal settings (this includes `custom-file')
+(when (file-exists-p jonatan-personal-dir)
+  (message "Loading personal configuration files in %s..." jonatan-personal-dir)
+  (mapc 'load (directory-files jonatan-personal-dir 't "^[^#].*el$")))
+
 (load custom-file)
 
 
@@ -60,6 +66,14 @@
        w32-rwindow-modifier 'super ;; Right Windows key
        w32-apps-modifier 'hyper) ;; Menu key
   )
+
+
+;; fancy git icon
+(defadvice vc-mode-line (after strip-backend () activate)
+  (when (stringp vc-mode)
+    (let ((gitlogo (replace-regexp-in-string "^ Git." "  " vc-mode)))
+      (setq vc-mode gitlogo))))
+
 
 
 ;; Windows explorer to go to the file in the current buffer
