@@ -129,9 +129,6 @@
 
 
 
-(require 'paradox)
-(paradox-enable)
-
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
 
@@ -144,6 +141,11 @@
 
 (use-package bind-key                ;; if you use any :bind variant
   :ensure t)
+
+(use-package paradox
+  :ensure t
+  :config  (paradox-enable)
+)
 
 (use-package color-theme-sanityinc-tomorrow
   :ensure t
