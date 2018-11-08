@@ -16,7 +16,9 @@
 ;; already disabled anyway
 (when (fboundp 'tool-bar-mode)
   (tool-bar-mode -1))
-(scroll-bar-mode -1)
+
+(when window-system
+  (scroll-bar-mode -1))
 
 ;; avoid annoying resizes during startup
 (set-face-attribute 'default nil :family "Consolas" :height 110)
@@ -146,8 +148,10 @@
 (use-package color-theme-sanityinc-tomorrow
   :ensure t
   :init
-   (load-theme 'sanityinc-tomorrow-day)
-)
+  (if window-system
+      (load-theme 'sanityinc-tomorrow-day)
+    (load-theme 'sanityinc-tomorrow-night)
+    ))
 
 (use-package smart-mode-line
   :ensure t
