@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: copy sign bit
+# key: sign
+# --
+BIF ${1:xd},${2:xn},63, 1

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: remove sign bit
+# key: unsign
+# --
+MOVZ ${2:xn}, #1
+BIC ${1:xd},${2:xn}, LSL #63

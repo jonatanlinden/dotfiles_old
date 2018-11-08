@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: check nan or inf
+# key: cmp-nan-or-inf
+# --
+
+MOVZ    ${1:tmp}, #0x0020, LSL #48
+CMN     $1, ${2:test register}, LSL #1

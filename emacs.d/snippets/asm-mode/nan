@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: NaN
+# key: nan
+# --
+MOVN    x0,#0x8000, LSL #48
