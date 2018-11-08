@@ -672,22 +672,21 @@
               arm-lookup-browse-pdf-function 'arm-lookup-browse-pdf-sumatrapdf
               ))
 
+(unless (file-expand-wildcards (concat package-user-dir "/org-[0-9]*"))
+  (package-install (elt (cdr (assoc 'org package-archive-contents)) 0)))
+(require 'org)
 
 (use-package org
   :init (setq org-export-backends '(ascii html md))
   )
 
-
 (use-package mediawiki
   :ensure t
-  :commands mediawiki-mode
+  :commands (mediawiki-mode)
   :init
-  (setq mediawiki-site-alist
-        '(("IARwiki" "http://wiki.iar.se/" "jonatanli" nil nil "User:Jonatanli"))
-        mediawiki-site-default "IARwiki"
-        url-user-agent "EMACS" ; unable to open otherwise
+  ;; workaround, unable to run mediawiki-open otherwise
+  (setq url-user-agent "EMACS" ;
         ))
-
 
 (use-package alert
   :if window-system
@@ -700,6 +699,5 @@
   :if window-system
   :commands (slack-start)
   :init
-  ;;(setq slack-buffer-emojify t) ;; if you want to enable emoji, default nil
   (setq slack-prefer-current-team t)
   )
