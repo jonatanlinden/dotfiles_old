@@ -17,6 +17,9 @@
 (when (fboundp 'tool-bar-mode)
   (tool-bar-mode -1))
 
+(when (fboundp 'menu-bar-mode)
+  (menu-bar-mode -1))
+
 (when window-system
   (scroll-bar-mode -1))
 
@@ -49,11 +52,14 @@
 (setq custom-file (expand-file-name "custom.el" jonatan-personal-dir))
 (load custom-file)
 
- (setq w32-pass-lwindow-to-system nil
+
+(when (eq system-type 'windows-nt)
+  (setq w32-pass-lwindow-to-system nil
        w32-pass-rwindow-to-system nil
        w32-lwindow-modifier 'super ;; Left Windows key
        w32-rwindow-modifier 'super ;; Right Windows key
        w32-apps-modifier 'hyper) ;; Menu key
+  )
 
 
 ;; Always load newest byte code
@@ -350,13 +356,6 @@
   :config
   (volatile-highlights-mode +1))
 
-(when (eq system-type 'windows-nt)
-  (setq w32-pass-lwindow-to-system nil)
-  (setq w32-lwindow-modifier 'super) ; Left Windows key
-
-  (setq w32-pass-rwindow-to-system nil)
-  (setq w32-rwindow-modifier 'super)) ; Right Windows key
-
 
 (use-package dired
   :config
@@ -438,6 +437,10 @@
   (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
   (projectile-global-mode))
 
+(use-package counsel-projectile
+  :ensure t
+  :config
+  (counsel-projectile-mode))
 
 (use-package flycheck
   :ensure t
@@ -682,3 +685,19 @@
         mediawiki-site-default "IARwiki"
         url-user-agent "EMACS" ; unable to open otherwise
         ))
+
+
+(use-package alert
+  :if window-system
+  :ensure t
+  :commands (alert)
+  :init
+  (setq alert-default-style 'notifier))
+
+(use-package slack
+  :if window-system
+  :commands (slack-start)
+  :init
+  ;;(setq slack-buffer-emojify t) ;; if you want to enable emoji, default nil
+  (setq slack-prefer-current-team t)
+  )
