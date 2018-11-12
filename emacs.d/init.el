@@ -62,9 +62,21 @@
   )
 
 
+;; Windows explorer to go to the file in the current buffer
+;; either use subst-char-in-string to get backslash, or define
+;; (defun w32-shell-dos-semantics() t)
+(defun jl/open-folder-in-explorer ()
+  "Open windows explorer in the current directory and select the current file."
+  (interactive)
+  (w32-shell-execute
+    "open" "explorer"
+    (concat "/e,/select," (subst-char-in-string ?/ ?\\ (convert-standard-filename buffer-file-name)))
+  )
+)
+
+
 ;; Always load newest byte code
 (setq load-prefer-newer t)
-
 
 ;; warn when opening files bigger than 100MB
 (setq large-file-warning-threshold 100000000)
@@ -77,8 +89,6 @@
 
 ;; disable startup screen
 (setq inhibit-startup-screen t)
-
-
 
 ;; nice scrolling
 (setq scroll-margin 0
@@ -111,7 +121,7 @@
 (setq require-final-newline t)
 
 ;; delete the selection with a keypress
-(delete-selection-mode t)
+;; (delete-selection-mode t)
 
 ;; store all backup and autosave files in the tmp dir
 (setq backup-directory-alist
@@ -238,7 +248,7 @@
 (use-package crux
   :ensure t
   :bind (("C-c o" . crux-open-with)
-         ("M-o" . crux-smart-open-line)
+         ;;("M-o" . crux-smart-open-line)
          ("C-c n" . crux-cleanup-buffer-or-region)
          ("C-c f" . crux-recentf-find-file)
          ("C-M-z" . crux-indent-defun)
@@ -271,16 +281,18 @@
 
 
 (use-package anzu
-    :bind (([remap query-replace] . anzu-query-replace)
-           ([remap query-replace-regexp] . anzu-query-replace-regexp))
-    :diminish ""
-    :init
-    (setq anzu-cons-mode-line-p nil)
-    :config
-    (global-anzu-mode))
+  :ensure t
+  :bind (([remap query-replace] . anzu-query-replace)
+         ([remap query-replace-regexp] . anzu-query-replace-regexp))
+  :diminish ""
+  :init
+  (setq anzu-cons-mode-line-p nil)
+  :config
+  (global-anzu-mode))
 
 
 (use-package avy
+  :ensure t
   :bind (("s-." . avy-goto-word-or-subword-1)
          ("s-," . avy-goto-char))
   ;; :chords (("jj" . avy-goto-line)
@@ -590,6 +602,7 @@
  "C-x \\" 'align-regexp
  ;; mark-end-of-sentence is normally unassigned
  "M-p" 'mark-end-of-sentence
+ "M-o" #'jl/open-folder-in-explorer
   )
 
 
@@ -701,3 +714,7 @@
   :init
   (setq slack-prefer-current-team t)
   )
+
+(use-package cmake-mode
+  :ensure t
+  :mode "CMakeLists.txt")
