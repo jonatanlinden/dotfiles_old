@@ -256,7 +256,7 @@
          ("C-c e" . crux-eval-and-replace)
          ("C-c w" . crux-swap-windows)
          ("C-c D" . crux-delete-file-and-buffer)
-         ("C-c r" . crux-rename-buffer-and-file)
+         ("C-c R" . crux-rename-buffer-and-file)
          ("C-c t" . crux-visit-term-buffer)
          ("C-c k" . crux-kill-other-buffers)
          ("C-c TAB" . crux-indent-rigidly-and-copy-to-clipboard)
@@ -359,6 +359,7 @@
   (global-set-key (kbd "C-c g") 'counsel-git)
   (global-set-key (kbd "C-c j") 'counsel-git-grep)
   (global-set-key (kbd "C-c a") 'counsel-ag)
+  (global-set-key (kbd "C-c r") 'counsel-rg)
   (global-set-key (kbd "C-x l") 'counsel-locate)
   (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history))
 
@@ -681,6 +682,8 @@
 
 (use-package arm-lookup
   :load-path "lisp/arm-lookup"
+  :bind (:map asm-mode-map
+              ("M-." . arm-lookup))
   :init (setq arm-lookup-txt "d:/work/trunk/armdoc/DDI0487D_a_armv8_arm.txt"
               arm-lookup-browse-pdf-function 'arm-lookup-browse-pdf-sumatrapdf
               ))
