@@ -399,15 +399,17 @@
         company-echo-delay 0     ; remove annoying blinking
         company-tooltip-limit 10
         company-tooltip-flip-when-above t
-        company-minimum-prefix-length 2)
+        company-minimum-prefix-length 2
+        company-dabbrev-downcase nil
+        )
   ;; (add-hook 'after-init-hook #'global-company-mode)
   :hook ((prog-mode) . company-mode)
   :config
   ;; set default `company-backends'
   (setq company-backends
-        '(company-files
+        '((company-files
           company-capf
-          company-yasnippet))
+          company-yasnippet) company-dabbrev))
 
   )
 
