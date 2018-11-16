@@ -363,6 +363,12 @@
   (global-set-key (kbd "C-x l") 'counsel-locate)
   (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history))
 
+
+(use-package wgrep
+  :ensure t
+  )
+
+
 ;; temporarily highlight changes from yanking, etc
 (use-package volatile-highlights
   :ensure t
@@ -431,6 +437,13 @@
   :ensure t
   :config
   (which-key-mode +1))
+
+
+(use-package discover-my-major
+  :ensure t
+  :commands (discover-my-major discover-my-mode)
+  )
+
 
 (use-package undo-tree
   :ensure t
@@ -582,9 +595,6 @@
 
 (defun jl/c++-mode-hook (setq-local sp-escape-quotes-after-insert nil))
 
-(use-package discover-my-major
-  :ensure t)
-
 (use-package general
   :ensure t
 )
@@ -723,3 +733,24 @@
 (use-package cmake-mode
   :ensure t
   :mode "CMakeLists.txt")
+
+(use-package multiple-cursors
+  :ensure t
+  :bind (("C-c m c" . mc/edit-lines)
+         ("C->" . mc/mark-next-symbol-like-this)
+         ("C-<" . mc/mark-previous-symbol-like-this)
+         ("M-C->" . mc/mark-next-like-this-word))
+  )
+
+
+(defun jl/magit-log-edit-mode-hook ()
+      (setq fill-column 72)
+      (turn-on-auto-fill))
+
+(use-package magit
+  :ensure t
+  :defer t
+  :bind (("C-x g" . magit-status))
+  :config
+  :hook (magit-log-edit-mode . jl/magit-log-edit-mode-hook)
+  )
