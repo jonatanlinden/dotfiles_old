@@ -501,7 +501,8 @@
 
 (use-package robe
   :ensure t
-  :bind ("C-M-." . robe-jump)
+  :bind (:map ruby-mode-map
+              ("C-M-." . robe-jump))
   :hook (ruby-mode . robe-mode)
   ;; :config
   ;; (defadvice inf-ruby-console-auto
