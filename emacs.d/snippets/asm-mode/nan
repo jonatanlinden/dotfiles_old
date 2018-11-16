@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
 # name: +Infinity
-# key: inf
+# key: nan
 # --
-MOVZ    x0,#0x7ff0, LSL #48
+MOVN    x0,#0x8000, LSL #48
