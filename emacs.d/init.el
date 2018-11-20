@@ -56,7 +56,7 @@
   (message "Loading personal configuration files in %s..." jonatan-personal-dir)
   (mapc 'load (directory-files jonatan-personal-dir 't "^[^#].*el$")))
 
-(load custom-file)
+;; (load custom-file)
 
 
 (when (eq system-type 'windows-nt)
@@ -68,11 +68,6 @@
   )
 
 
-;; fancy git icon
-(defadvice vc-mode-line (after strip-backend () activate)
-  (when (stringp vc-mode)
-    (let ((gitlogo (replace-regexp-in-string "^ Git." "  " vc-mode)))
-      (setq vc-mode gitlogo))))
 
 
 
@@ -584,22 +579,28 @@
 
 (setq gud-gdb-command-name "gdb-multiarch -i=mi --annotate=1")
 
-(use-package asm-mode
-  :mode ("\\.i\\'" "\\.s\\'")
-  :init (setq comment-column 40)
-  :hook jl/asm-mode-hook)
-
-(add-hook 'asm-mode-hook #'jl/asm-mode-hook)
-
 (defun jl/asm-mode-hook ()
   ;; you can use `comment-dwim' (M-;) for this kind of behaviour anyway
-  (local-unset-key (vector asm-comment-char))
+
+  ;;(local-unset-key (vector asm-comment-char))
   ;; asm-mode sets it locally to nil, to "stay closer to the old TAB behaviour".
   (setq tab-always-indent (default-value 'tab-always-indent)
         comment-column 40
         tab-stop-list (number-sequence 8 64 8)
-        )
-  )
+        ))
+
+
+(use-package asm-mode
+  :mode ("\\.i\\'" "\\.s\\'")
+  :init (setq comment-column 40
+              asm-comment-char ?/)
+  :config
+  ;; Hack to get a // comment in asm-mode.
+  (defadvice asm-comment (after extra-slash activate)
+    (insert-char ?/))
+  :hook (asm-mode . jl/asm-mode-hook))
+
+(add-hook 'asm-mode-hook #'jl/asm-mode-hook)
 
 ;; FIX prevent bug in smartparens       
 (setq sp-escape-quotes-after-insert nil)
@@ -615,7 +616,7 @@
 )
 
 (general-define-key
- "s-2" '(er/mark-word :which-key "mark word")
+ "H-2" '(er/mark-word :which-key "mark word")
  "s-x" 'execute-extended-command
  "C-x C-m" 'execute-extended-command
  "C-w" 'backward-kill-word
@@ -624,8 +625,6 @@
  ;; use hippie-expand instead of dabbrev
  "M-/" 'hippie-expand
  "s-/" 'hippie-expand
- ;; replace buffer-menu with ibuffer
- "C-x C-b" 'ibuffer
  ;; align code
  "C-x \\" 'align-regexp
  ;; mark-end-of-sentence is normally unassigned
@@ -633,6 +632,26 @@
  "M-o" #'jl/open-folder-in-explorer
   )
 
+(use-package ibuffer
+  :bind ("C-x C-b" . ibuffer)
+  :init (setq ibuffer-saved-filter-groups
+              '(("home"
+	               ("Org" (or (mode . org-mode)
+		                        (filename . "OrgMode")))
+                 ("Subversion" (name . "\*svn"))
+	               ("Magit" (name . "\*magit"))
+   	             ("Help" (or (name . "\*Help\*")
+		                         (name . "\*Apropos\*")
+		                         (name . "\*info\*")))))
+
+              ibuffer-show-empty-filter-groups t
+              )
+  :hook jl/ibuffer-mode-hook
+  )
+
+(defun jl/ibuffer-mode-hook ()
+  (ibuffer-auto-mode 1)
+	(ibuffer-switch-to-saved-filter-groups "home"))
 
 ;; show the cursor when moving after big movements in the window
 (use-package beacon
