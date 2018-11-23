@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: NaN single precision
+# key: nanf
+# --
+MOVN    ${1:wd}, #0x8000, LSL #16

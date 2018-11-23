@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: +Infinity
+# key: inf
+# --
+MOVZ    ${1:xd},#0x7ff0, LSL #48
