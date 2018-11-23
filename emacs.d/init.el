@@ -11,6 +11,10 @@
 ;; reset frequency of garbage collection once emacs has booted
 (add-hook 'emacs-startup-hook #'jl/reset-gc-threshold)
 
+
+(defvar *is-mac* (eq system-type 'darwin))
+(defvar *is-win* (eq system-type 'windows-nt))
+
 ;; the toolbar is just a waste of valuable screen estate
 ;; in a tty tool-bar-mode does not properly auto-load, and is
 ;; already disabled anyway
@@ -22,6 +26,9 @@
 
 (when window-system
   (scroll-bar-mode -1))
+
+;; try the following for unicode characters
+;; (setq inhibit-compacting-font-caches t)
 
 ;; avoid annoying resizes during startup
 (set-face-attribute 'default nil :family "Consolas" :height 110)
@@ -291,8 +298,10 @@
 
 (use-package anzu
   :ensure t
-  :bind (([remap query-replace] . anzu-query-replace)
-         ([remap query-replace-regexp] . anzu-query-replace-regexp))
+  :bind
+  ([remap query-replace] . anzu-query-replace)
+  ([remap query-replace-regexp] . anzu-query-replace-regexp)
+  ("H-q" . anzu-query-replace-at-cursor-thing)
   :diminish ""
   :init
   (setq anzu-cons-mode-line-p nil)
@@ -323,23 +332,30 @@
   (setq-default smex-history-length 32
                 smex-save-file (expand-file-name "smex-items" jonatan-savefile-dir)))
 
-(use-package ivy
-  :ensure t
-  :init
-  (setq ivy-use-virtual-buffers t
-        ivy-count-format ""
-        ivy-extra-directories ())
-  :config
-  (ivy-mode 1)
 
-  ;; use flx matching instead of the default
+;; use flx matching instead of the default
   ;; see https://oremacs.com/2016/01/06/ivy-flx/ for details
   ;;(setq ivy-re-builders-alist
         ;;'((t . ivy--regex-fuzzy)))
   ;(setq ivy-initial-inputs-alist nil)
   ;(setq enable-recursive-minibuffers t)
-  (global-set-key (kbd "C-c C-r") 'ivy-resume)
-  (global-set-key (kbd "<f6>") 'ivy-resume))
+
+(use-package ivy
+  :ensure t
+  :custom
+  (ivy-extra-directories nil)
+  (ivy-use-virtual-buffers t)
+  (ivy-virtual-abbreviate 'abbreviate)
+  :init
+  (setq ivy-count-format "")
+  (ivy-mode)
+  :bind
+  ("s-b" . ivy-switch-buffer)
+  ("H-b" . ivy-switch-buffer)
+  ("C-c C-r" . 'ivy-resume)
+  (:map ivy-switch-buffer-map
+        ("H-k" . ivy-switch-buffer-kill))
+  )
 
 (use-package ace-window
   :ensure t
@@ -350,8 +366,12 @@
 
 (use-package swiper
   :ensure t
-  :config
-  (global-set-key "\C-s" 'swiper))
+  :bind
+  ([remap isearch-forward]  . swiper)
+  ([remap isearch-backward] . swiper)
+  :custom
+  (swiper-action-recenter t)
+  )
 
 (use-package counsel
   :ensure t
@@ -423,8 +443,9 @@
   ;; set default `company-backends'
   (setq company-backends
         '((company-files
-          company-capf
-          company-yasnippet) company-dabbrev))
+           company-keywords
+           company-capf
+           company-yasnippet) company-dabbrev))
 
   )
 
@@ -437,10 +458,23 @@
   )
 
 
-
+;(use-package expand-region
+;  :bind* ("C-," . er/expand-region))
 (use-package expand-region
   :ensure t
-:bind ("C-=" . er/expand-region))
+  :bind*
+  ("C-=" . er/expand-region)
+  ("H-2" . er/mark-word)
+  )
+
+(use-package change-inner
+  :ensure t
+  :bind
+  ("M-i" . change-inner)
+  ;("M-o" . change-outer)
+  :config
+  (advice-add 'change-inner* :around #'delete-region-instead-of-kill-region))
+
 
 (use-package which-key
   :ensure t
@@ -472,7 +506,7 @@
         projectile-svn-command "find . -type f -not -iwholename '*.svn/*' -print0")
   :config
   (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
-  (projectile-global-mode))
+  (projectile-mode))
 
 (use-package counsel-projectile
   :ensure t
@@ -498,7 +532,8 @@
               ruby-indent-tabs-mode nil)
   (add-to-list 'flycheck-disabled-checkers 'ruby-reek)
   :config
-  (push 'company-robe company-backends)
+  (make-local-variable 'company-backends)
+  (push 'company-robe 'company-backends)
   :hook subword-mode
   (use-package smartparens-ruby)
   :interpreter "ruby"
@@ -545,7 +580,7 @@
 
 (defun jl/web-mode-hook ()
   "Hooks for Web mode."
-  (setq web-mode-markup-indent-offset 2) 
+  (setq web-mode-markup-indent-offset 2)
   (web-mode-edit-element-minor-mode)
 
   )
@@ -602,7 +637,7 @@
 
 (add-hook 'asm-mode-hook #'jl/asm-mode-hook)
 
-;; FIX prevent bug in smartparens       
+;; FIX prevent bug in smartparens
 (setq sp-escape-quotes-after-insert nil)
 
 (use-package c++-mode
@@ -616,9 +651,8 @@
 )
 
 (general-define-key
- "H-2" '(er/mark-word :which-key "mark word")
- "s-x" 'execute-extended-command
- "C-x C-m" 'execute-extended-command
+ "s-x" 'counsel-M-x
+ "C-x C-m" 'counsel-M-x
  "C-w" 'backward-kill-word
  "C-x C-k" 'kill-region
  "C-x O" '(other-window-prev :which-key "previous window")
@@ -771,15 +805,15 @@
 (use-package multiple-cursors
   :ensure t
   :bind (("C-c m c" . mc/edit-lines)
-         ("C->" . mc/mark-next-symbol-like-this)
-         ("C-<" . mc/mark-previous-symbol-like-this)
+         ("C->" . mc/mark-next-like-this-symbol)
+         ("C-<" . mc/mark-previous-like-this-symbol)
          ("M-C->" . mc/mark-next-like-this-word))
   )
 
 
 (defun jl/magit-log-edit-mode-hook ()
-      (setq fill-column 72)
-      (turn-on-auto-fill))
+  (setq fill-column 72)
+  (turn-on-auto-fill))
 
 (use-package magit
   :ensure t
