@@ -189,10 +189,11 @@
 
 (use-package smart-mode-line
   :ensure t
-  :init
-  (setq-default sml/vc-mode-show-backend t
-		sml/theme 'respectful
-                sm/name-with 30))
+  :custom
+  (sml/vc-mode-show-backend t)
+  (sml/theme 'respectful)
+  (sml/name-width 30)
+  )
 
 (use-package paren
   :config
@@ -223,22 +224,25 @@
 
 
 (use-package uniquify
-  :config
-  (setq uniquify-buffer-name-style 'forward)
-  (setq uniquify-separator "/")
+  :custom
+  (uniquify-separator "/")
+  (uniquify-buffer-name-style 'forward)
   ;; rename after killing uniquified
-  (setq uniquify-after-kill-buffer-p t)
+  (uniquify-after-kill-buffer-p t)
   ;; don't muck with special buffers
-  (setq uniquify-ignore-buffers-re "^\\*"))
+  (uniquify-ignore-buffers-re "^\\*")
+  )
 
 
 ;; saveplace remembers your location in a file when saving files
 (require 'saveplace)
 (use-package saveplace
-  :config
-  (setq save-place-file (expand-file-name "saveplace" jonatan-savefile-dir))
+  :ensure t
+  :custom
+  (save-place-file (expand-file-name "saveplace" jonatan-savefile-dir))
   ;; activate it for all buffers
-  (setq-default save-place t))
+  (save-place t)
+  )
 
 (use-package savehist
   :config
@@ -311,15 +315,18 @@
 
 (use-package avy
   :ensure t
-  :bind (("s-." . avy-goto-word-or-subword-1)
-         ("s-," . avy-goto-char))
+  :custom
+  (avy-style 'de-bruijn)
+  :bind (("H-." . avy-goto-word-or-subword-1)
+         ("H-," . avy-goto-char)
+         ("M-g g" . avy-goto-line)
+         )
   ;; :chords (("jj" . avy-goto-line)
   ;;          ("jk" . avy-goto-word)
   ;;         )
   :config
   (setq avy-background t
-        avy-style 'at-full))
-
+        ))
 
 
 ;; needed to tweak the matching algorithm used by ivy
@@ -463,8 +470,8 @@
 (use-package expand-region
   :ensure t
   :bind*
-  ("C-=" . er/expand-region)
-  ("H-2" . er/mark-word)
+  ("H-0" . er/expand-region)
+  ("C-," . er/mark-word)
   )
 
 (use-package change-inner
