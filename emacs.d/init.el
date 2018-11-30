@@ -450,7 +450,6 @@
   ;; set default `company-backends'
   (setq company-backends
         '((company-files
-           company-keywords
            company-capf
            company-yasnippet) company-dabbrev))
 
@@ -481,6 +480,18 @@
   ;("M-o" . change-outer)
   :config
   (advice-add 'change-inner* :around #'delete-region-instead-of-kill-region))
+
+
+
+(use-package symbol-overlay
+  :ensure t
+  :custom
+  (symbol-overlay-idle-time 1.5)
+  :bind
+  ("M-n" . symbol-overlay-jump-next)
+  ("M-p" . symbol-overlay-jump-prev)
+  :hook
+(prog-mode . symbol-overlay-mode))
 
 
 (use-package which-key
@@ -535,14 +546,13 @@
   :hook (ruby-mode . inf-ruby-minor-mode))
 
 (use-package ruby-mode
+  :ensure t
   :init (setq ruby-indent-level 2
               ruby-indent-tabs-mode nil)
   (add-to-list 'flycheck-disabled-checkers 'ruby-reek)
   :config
-  (make-local-variable 'company-backends)
-  (push 'company-robe 'company-backends)
-  :hook subword-mode
   (use-package smartparens-ruby)
+  (subword-mode)
   :interpreter "ruby"
   :bind
   (([(meta down)] . ruby-forward-sexp)
@@ -554,12 +564,16 @@
   :ensure t
   :bind (:map ruby-mode-map
               ("C-M-." . robe-jump))
+  :config
+  (make-local-variable 'company-backends)
+  (push 'company-robe company-backends)
   :hook (ruby-mode . robe-mode)
   ;; :config
   ;; (defadvice inf-ruby-console-auto
   ;;   (before activate-rvm-for-robe activate)
   ;;  (rvm-activate-corresponding-ruby))
   )
+
 
 (use-package ruby-tools
   :ensure t
