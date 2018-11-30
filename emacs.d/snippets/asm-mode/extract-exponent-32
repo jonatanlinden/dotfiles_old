@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: extract exponent 32
+# key: exexp32
+# --
+UBFX    ${1:dest}, ${2:src}, 23, 8           // Extract exponent
