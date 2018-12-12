@@ -448,11 +448,11 @@
 (use-package company
   :ensure t
   :diminish company-mode
-  :bind (:map company-active-map
-              ("C-e" . company-other-backend)
-              ("C-n" . company-select-next-or-abort)
-              ("C-p" . company-select-previous-or-abort)
-              )
+  :bind
+  (:map company-active-map
+        ("C-e" . company-other-backend)
+        ("C-n" . company-select-next-or-abort)
+        ("C-p" . company-select-previous-or-abort))
   :init
   (setq company-idle-delay 0.5    ; decrease delay before
                                         ; autocompletion popup shows
@@ -478,6 +478,7 @@
                                   'company-keywords)))
 (use-package company-flx
   :ensure t
+  :after (company)
   :config (company-flx-mode +1)
   )
 
@@ -549,6 +550,7 @@
 
 (use-package counsel-projectile
   :ensure t
+  :after (projectile counsel)
   :config
   (counsel-projectile-mode))
 
@@ -562,6 +564,7 @@
 
 (use-package flycheck-clang-tidy
   :if (executable-find "clang-tidy")
+  :after (flycheck)
   :ensure t
   :hook (c++-mode . flycheck-clang-tidy-setup)
 )
@@ -705,7 +708,7 @@
   )
 
 (use-package company-irony
-  :if *is-mac*
+  :after irony
   :ensure t
   :hook (irony-mode . (lambda ()
                         (add-to-list (make-local-variable 'company-backends) 'company-irony)))
