@@ -1,7 +1,7 @@
+;; -*- lexical-binding: t -*-
 
 ;; reduce the frequency of garbage collection by making it happen on
 ;; each 50MB of allocated data (the default is on every 0.76MB)
-;;; Code:
 (setq gc-cons-threshold 50000000)
 
 (defun jl/reset-gc-threshold ()
@@ -15,8 +15,11 @@
 (defvar *is-mac* (eq system-type 'darwin))
 (defvar *is-win* (eq system-type 'windows-nt))
 
+
+;;;;; put early, avoid annoying resizes during startup
+
 ;; the toolbar is just a waste of valuable screen estate
-;; in a tty tool-bar-mode does not properly auto-load, and is
+;; in a tvty tool-bar-mode does not properly auto-load, and is
 ;; already disabled anyway
 (when (fboundp 'tool-bar-mode)
   (tool-bar-mode -1))
@@ -30,8 +33,14 @@
 ;; try the following for unicode characters
 ;; (setq inhibit-compacting-font-caches t)
 
-;; avoid annoying resizes during startup
-(set-face-attribute 'default nil :family "Consolas" :height 110)
+;; Default font
+(cond (*is-win* (set-face-attribute 'default nil :family "Consolas" :height 110))
+      (*is-mac* (set-face-attribute 'default nil :family "Menlo" :height 140))
+)
+
+(when (memq window-system '(mac ns))
+  (add-to-list 'default-frame-alist '(ns-appearance . light))
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
 
 (require 'package)
 
@@ -66,7 +75,7 @@
 ;; (load custom-file)
 
 
-(when (eq system-type 'windows-nt)
+(when *is-win*
   (setq w32-pass-lwindow-to-system nil
        w32-pass-rwindow-to-system nil
        w32-lwindow-modifier 'super ;; Left Windows key
@@ -89,7 +98,6 @@
     (concat "/e,/select," (subst-char-in-string ?/ ?\\ (convert-standard-filename buffer-file-name)))
   )
 )
-
 
 ;; Always load newest byte code
 (setq load-prefer-newer t)
@@ -160,7 +168,6 @@
 (global-auto-revert-mode 1)
 
 
-
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
 
@@ -175,9 +182,21 @@
   :ensure t)
 
 (use-package paradox
+  :disabled
   :ensure t
   :config  (paradox-enable)
 )
+
+(use-package exec-path-from-shell
+  :if (memq window-system '(mac ns x))
+  :ensure t
+  ;; make it faster (assuming all envs in .zshenv)
+  :custom (exec-path-from-shell-arguments '("-l" "-d"))
+  :config
+  (exec-path-from-shell-copy-envs '("LC_ALL" "PYTHONPATH"))
+  (exec-path-from-shell-initialize)
+  )
+
 
 (use-package color-theme-sanityinc-tomorrow
   :ensure t
@@ -205,10 +224,10 @@
   :config
   (require 'smartparens-config)
   (setq sp-base-key-bindings 'paredit
-          sp-autoskip-closing-pair 'always
-          sp-hybrid-kill-entire-symbol nil
-          sp-show-pair-delay 0
-          )
+        sp-autoskip-closing-pair 'always
+        sp-hybrid-kill-entire-symbol nil
+        sp-show-pair-delay 0
+        )
   (sp-use-paredit-bindings)
   (show-smartparens-global-mode +1)
   (smartparens-global-mode t)
@@ -268,7 +287,6 @@
 (use-package crux
   :ensure t
   :bind (("C-c o" . crux-open-with)
-         ;;("M-o" . crux-smart-open-line)
          ("C-c n" . crux-cleanup-buffer-or-region)
          ("C-c f" . crux-recentf-find-file)
          ("C-M-z" . crux-indent-defun)
@@ -384,26 +402,26 @@
   :ensure t
   :init
   (setq counsel-find-file-at-point t)
-  :config
-  (global-set-key (kbd "M-x") 'counsel-M-x)
-  (global-set-key (kbd "C-x C-f") 'counsel-find-file)
-  (global-set-key (kbd "<f1> f") 'counsel-describe-function)
-  (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
-  (global-set-key (kbd "<f1> l") 'counsel-find-library)
-  (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
-  (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
-  (global-set-key (kbd "C-c g") 'counsel-git)
-  (global-set-key (kbd "C-c j") 'counsel-git-grep)
-  (global-set-key (kbd "C-c a") 'counsel-ag)
-  (global-set-key (kbd "C-c r") 'counsel-rg)
-  (global-set-key (kbd "C-x l") 'counsel-locate)
-  (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history))
-
+  :bind
+  (("M-x" . counsel-M-x)
+   ("C-x C-f" . counsel-find-file)
+   ("<f1> f" . counsel-describe-function)
+   ("<f1> v" . counsel-describe-variable)
+   ("<f1> l" . counsel-find-library)
+   ("<f2> i" . counsel-info-lookup-symbol)
+   ("<f2> u" . counsel-unicode-char)
+   ("C-c g" . counsel-git)
+   ("C-c j" . counsel-git-grep)
+   ("C-c a" . counsel-ag)
+   ("C-c r" . counsel-rg)
+   ("C-x l" . counsel-locate)
+   :map minibuffer-local-map
+   ("C-r" . counsel-minibuffer-history))
+  )
 
 (use-package wgrep
   :ensure t
   )
-
 
 ;; temporarily highlight changes from yanking, etc
 (use-package volatile-highlights
@@ -445,7 +463,7 @@
         company-dabbrev-downcase nil
         )
   ;; (add-hook 'after-init-hook #'global-company-mode)
-  :hook ((prog-mode) . company-mode)
+  :hook (prog-mode . company-mode)
   :config
   ;; set default `company-backends'
   (setq company-backends
@@ -491,7 +509,7 @@
   ("M-n" . symbol-overlay-jump-next)
   ("M-p" . symbol-overlay-jump-prev)
   :hook
-(prog-mode . symbol-overlay-mode))
+  (prog-mode . symbol-overlay-mode))
 
 
 (use-package which-key
@@ -517,14 +535,17 @@
 
 (use-package projectile
   :ensure t
-  :init
-  (setq projectile-completion-system 'ivy
-        projectile-enable-caching t
-        projectile-cache-file (expand-file-name  "projectile.cache" jonatan-savefile-dir)
-        projectile-svn-command "find . -type f -not -iwholename '*.svn/*' -print0")
+  :custom
+  (projectile-completion-system 'ivy)
+  (projectile-enable-caching t)
+  (projectile-cache-file (expand-file-name  "projectile.cache" jonatan-savefile-dir))
+  (projectile-svn-command "find . -type f -not -iwholename '*.svn/*' -print0")
+  :bind
+  (:map projectile-mode-map
+        ("s-p" . projectile-command-map))
   :config
-  (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
-  (projectile-mode))
+  (projectile-mode)
+  )
 
 (use-package counsel-projectile
   :ensure t
@@ -533,10 +554,17 @@
 
 (use-package flycheck
   :ensure t
+  :custom
+  (flycheck-checker-error-threshold 500)
+  (flycheck-check-syntax-automatically '(save))
   :init (global-flycheck-mode t)
-  (setq flycheck-checker-error-threshold 500)
-  (setq flycheck-check-syntax-automatically '(save))
   )
+
+(use-package flycheck-clang-tidy
+  :if (executable-find "clang-tidy")
+  :ensure t
+  :hook (c++-mode . flycheck-clang-tidy-setup)
+)
 
 (use-package inf-ruby
   :ensure t
@@ -596,14 +624,14 @@
   (setq web-mode-tag-auto-close-style 2)
   (setq web-mode-enable-auto-quoting t)
   (use-package web-mode-edit-element :ensure t)
-  :hook jl/web-mode-hook
+  :hook (web-mode . jl/web-mode-hook)
   )
 
 (defun jl/web-mode-hook ()
   "Hooks for Web mode."
-  (setq web-mode-markup-indent-offset 2)
-  (web-mode-edit-element-minor-mode)
-
+  (progn
+    (setq web-mode-markup-indent-offset 2)
+    (web-mode-edit-element-minor-mode))
   )
 
 (use-package json-mode
@@ -614,10 +642,8 @@
   :init (setq-default js-indent-level 2))
 
 
-;; highlight the current line
-;(global-hl-line-mode +1)
-
-(use-package diff-hl                    ; Show changes in fringe
+;; Show changes in fringe
+(use-package diff-hl
   :ensure t
   :init
   ;; Highlight changes to the current file in the fringe
@@ -627,11 +653,16 @@
   )
 
 (use-package whitespace
-  :init (setq whitespace-line-column 80
-
-              ))
+  :init (setq whitespace-line-column 80))
 ;  :hook (asm-mode . whitespace-mode)
 
+(require 'ansi-color)
+(defun colorize-compilation-buffer ()
+  "Support for ansi colors in comint buffers."
+  (read-only-mode)
+  (ansi-color-apply-on-region compilation-filter-start (point))
+  (read-only-mode))
+(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
 (setq gud-gdb-command-name "gdb-multiarch -i=mi --annotate=1")
 
@@ -659,13 +690,34 @@
 (add-hook 'asm-mode-hook #'jl/asm-mode-hook)
 
 ;; FIX prevent bug in smartparens
-(setq sp-escape-quotes-after-insert nil)
+;; (setq sp-escape-quotes-after-insert nil)
 
-(use-package c++-mode
-  :hook jl/c++-mode-hook
+
+(use-package irony
+  :if *is-mac*
+  :commands irony-mode
+  :ensure t
+  :config
+  (unless (irony--find-server-executable)
+    (call-interactively #'irony-install-server))
+  :hook ((irony-mode . irony-cdb-autosetup-compile-options)
+         (c++-mode . irony-mode))
   )
 
-(defun jl/c++-mode-hook (setq-local sp-escape-quotes-after-insert nil))
+(use-package company-irony
+  :if *is-mac*
+  :ensure t
+  :hook (irony-mode . (lambda ()
+                        (add-to-list (make-local-variable 'company-backends) 'company-irony)))
+  )
+
+(defun jl/c++-mode-hook ()
+    "FIX prevent bug in smartparens."
+    (setq-local sp-escape-quotes-after-insert nil))
+
+(use-package c++-mode
+  :hook (c++-mode . jl/c++-mode-hook)
+  )
 
 (use-package general
   :ensure t
@@ -684,8 +736,20 @@
  "C-x \\" 'align-regexp
  ;; mark-end-of-sentence is normally unassigned
  "M-p" 'mark-end-of-sentence
- "M-o" #'jl/open-folder-in-explorer
   )
+
+
+;;; open current file in explorer/finder
+(when *is-win*
+      (general-define-key
+       "M-o" #'jl/open-folder-in-explorer
+       ))
+
+(use-package reveal-in-osx-finder
+  :ensure t
+  :if *is-mac*
+  :bind ("M-o" . reveal-in-osx-finder)
+)
 
 (use-package ibuffer
   :bind ("C-x C-b" . ibuffer)
@@ -753,7 +817,6 @@
 (defun jl/el-mode-hook ()
   (eldoc-mode +1)
   (jl/recompile-elc-on-save)
-                                        ;(rainbow-mode +1)
   (smartparens-strict-mode +1)
   (rainbow-delimiters-mode +1)
   )
@@ -776,9 +839,10 @@
 
 (use-package yasnippet
   :ensure t
-  :config
-  (yas-global-mode 1)
-)
+  :commands (yas-minor-mode)
+  :hook (prog-mode . yas-minor-mode)
+  :config (yas-reload-all)
+  )
 
 
 (use-package arm-lookup
@@ -789,13 +853,13 @@
               arm-lookup-browse-pdf-function 'arm-lookup-browse-pdf-sumatrapdf
               ))
 
+
 (unless (file-expand-wildcards (concat package-user-dir "/org-[0-9]*"))
   (package-install (elt (cdr (assoc 'org package-archive-contents)) 0)))
-(require 'org)
 
 (use-package org
-  :init (setq org-export-backends '(ascii html md))
-  )
+  :ensure t
+  :custom (org-export-backends '(ascii html md)))
 
 (use-package mediawiki
   :ensure t
@@ -830,6 +894,10 @@
          ("C-<" . mc/mark-previous-like-this-symbol)
          ("M-C->" . mc/mark-next-like-this-word))
   )
+
+
+(setq delete-by-moving-to-trash t)
+(when *is-mac* (setq trash-directory "~/.Trash")) ;; not necessary on windows
 
 
 (defun jl/magit-log-edit-mode-hook ()
