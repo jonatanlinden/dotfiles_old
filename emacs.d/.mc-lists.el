@@ -6,6 +6,10 @@
         crux-move-beginning-of-line
         indent-for-tab-command
         kill-region
+        sp-backward-delete-char
+        sp-backward-kill-word
+        sp-delete-char
+        sp-splice-sexp
         ))
 
 (setq mc/cmds-to-run-once
