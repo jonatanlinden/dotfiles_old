@@ -549,6 +549,8 @@
   (projectile-enable-caching t)
   (projectile-cache-file (expand-file-name  "projectile.cache" jonatan-savefile-dir))
   (projectile-svn-command "find . -type f -not -iwholename '*.svn/*' -print0")
+  ;; on windows,
+  (w32-register-hot-key [s-p])
   :bind
   (:map projectile-mode-map
         ("s-p" . projectile-command-map))
