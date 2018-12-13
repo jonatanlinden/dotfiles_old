@@ -127,6 +127,10 @@
 ;; enable y/n answers
 (fset 'yes-or-no-p 'y-or-n-p)
 
+;; show trailing whitespace in editor
+(setq-default show-trailing-whitespace t)
+(setq-default show-tabs)
+
 ;; more useful frame title, that show either a file or a
 ;; buffer name (if the buffer isn't visiting a file)
 (setq frame-title-format
@@ -391,9 +395,6 @@
 
 (use-package swiper
   :ensure t
-  :bind
-  ([remap isearch-forward]  . swiper)
-  ([remap isearch-backward] . swiper)
   :custom
   (swiper-action-recenter t)
   )
@@ -402,6 +403,9 @@
   :ensure t
   :init
   (setq counsel-find-file-at-point t)
+  (setq counsel-grep-base-command
+        "rg -i -M 120 --no-heading --line-number --color never %s %s")
+  (setq counsel-grep-swiper-limit 30000)
   :bind
   (("M-x" . counsel-M-x)
    ("C-x C-f" . counsel-find-file)
@@ -415,6 +419,8 @@
    ("C-c a" . counsel-ag)
    ("C-c r" . counsel-rg)
    ("C-x l" . counsel-locate)
+   ([remap isearch-forward]  . counsel-grep-or-swiper)
+   ([remap isearch-backward] . counsel-grep-or-swiper)
    :map minibuffer-local-map
    ("C-r" . counsel-minibuffer-history))
   )
@@ -695,7 +701,6 @@
 ;; FIX prevent bug in smartparens
 ;; (setq sp-escape-quotes-after-insert nil)
 
-
 (use-package irony
   :if *is-mac*
   :commands irony-mode
@@ -722,6 +727,7 @@
   :hook (c++-mode . jl/c++-mode-hook)
   )
 
+
 (use-package general
   :ensure t
 )
@@ -739,7 +745,7 @@
  "C-x \\" 'align-regexp
  ;; mark-end-of-sentence is normally unassigned
  "M-p" 'mark-end-of-sentence
-  )
+ )
 
 
 ;;; open current file in explorer/finder
@@ -753,6 +759,29 @@
   :if *is-mac*
   :bind ("M-o" . reveal-in-osx-finder)
 )
+
+
+
+
+(use-package c++-mode
+  :hook jl/c++-mode-hook
+  )
+
+(defun jl/c++-mode-hook (setq-local sp-escape-quotes-after-insert nil))
+
+
+(use-package clang-format
+  :ensure t
+  :commands clang-format clang-format-buffer
+  :bind (:map c++-mode-map
+              ("C-c f" . clang-format-region)
+              )
+  )
+
+(general-define-key
+ :keymaps 'c++-mode-map
+ "C-c C-o" '(ff-find-other-file :which-key "toggle header/impl file")
+ )
 
 (use-package ibuffer
   :bind ("C-x C-b" . ibuffer)
@@ -850,11 +879,20 @@
 
 (use-package arm-lookup
   :load-path "lisp/arm-lookup"
-  :bind (:map asm-mode-map
-              ("M-." . arm-lookup))
-  :init (setq arm-lookup-txt "d:/work/trunk/armdoc/DDI0487D_a_armv8_arm.txt"
-              arm-lookup-browse-pdf-function 'arm-lookup-browse-pdf-sumatrapdf
-              ))
+  :custom
+  (arm-lookup-txt "d:/work/trunk/armdoc/DDI0487D_a_armv8_arm.txt")
+  (arm-lookup-browse-pdf-function 'arm-lookup-browse-pdf-sumatrapdf)
+  :commands (arm-lookup)
+                                        ;:bind (:map asm-mode-map ("M-." . arm-lookup))
+  :bind (("M-." . arm-lookup))
+  )
+
+(use-package burs-mode
+  :load-path "lisp/burs-mode"
+  :mode ("\\.tg\\'")
+  :commands (burs-mode)
+  )
+
 
 
 (unless (file-expand-wildcards (concat package-user-dir "/org-[0-9]*"))
@@ -888,6 +926,9 @@
 
 (use-package cmake-mode
   :ensure t
+  :config
+  (make-local-variable 'company-backends)
+  (push 'company-cmake company-backends)
   :mode "CMakeLists.txt")
 
 (use-package multiple-cursors
@@ -899,6 +940,7 @@
   )
 
 
+
 (setq delete-by-moving-to-trash t)
 (when *is-mac* (setq trash-directory "~/.Trash")) ;; not necessary on windows
 
@@ -907,10 +949,28 @@
   (setq fill-column 72)
   (turn-on-auto-fill))
 
+
 (use-package magit
   :ensure t
   :defer t
   :bind (("C-x g" . magit-status))
   :config
-  :hook (magit-log-edit-mode . jl/magit-log-edit-mode-hook)
   )
+
+
+(use-package magit-svn
+  :ensure t
+  :diminish magit-svn-mode
+  :commands (magit-svn-mode turn-on-magit-svn)
+  )
+
+
+(defun clang-format-defun ()
+  "Run clang-format on the current defun."
+  (interactive)
+  (save-excursion
+    (mark-defun)
+    (clang-format (region-beginning) (region-end))))
+
+(provide 'init)
+;;; init.el ends here
