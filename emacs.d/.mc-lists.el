@@ -3,7 +3,16 @@
 
 (setq mc/cmds-to-run-for-all
       '(
+        asm-comment
+        c-electric-brace
+        c-electric-colon
+        c-electric-delete-forward
+        c-electric-paren
+        c-electric-semi&comma
+        c-electric-star
+        c-indent-line-or-region
         crux-move-beginning-of-line
+        electric-newline-and-maybe-indent
         indent-for-tab-command
         kill-region
         sp-backward-delete-char
