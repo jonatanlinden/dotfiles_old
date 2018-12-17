@@ -453,7 +453,15 @@
 
 (use-package company
   :ensure t
-  :diminish company-mode
+  :commands company-mode
+  :custom (company-minimum-prefix-length 2)
+  (company-global-modes '(not text-mode))
+    ;; set default `company-backends'
+  (company-backends
+        '((company-files
+           company-capf
+           company-yasnippet) company-dabbrev))
+
   :bind
   (:map company-active-map
         ("C-e" . company-other-backend)
@@ -465,23 +473,17 @@
         company-echo-delay 0     ; remove annoying blinking
         company-tooltip-limit 10
         company-tooltip-flip-when-above t
-        company-minimum-prefix-length 2
         company-dabbrev-downcase nil
         )
   ;; (add-hook 'after-init-hook #'global-company-mode)
-  :hook (prog-mode . company-mode)
-  :config
-  ;; set default `company-backends'
-  (setq company-backends
-        '((company-files
-           company-capf
-           company-yasnippet) company-dabbrev))
-
+  :hook ((after-init . global-company-mode)
+         (prog-mode . jl/prog-mode-hook))
   )
 
-(add-hook 'prog-mode-hook
-          (lambda () (add-to-list (make-local-variable 'company-backends)
-                                  'company-keywords)))
+(defun jl/prog-mode-hook ()
+  (make-local-variable 'company-backends)
+  (push 'company-keywords company-backends))
+
 (use-package company-flx
   :ensure t
   :after (company)
