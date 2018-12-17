@@ -174,6 +174,7 @@
 
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
+(setq use-package-verbose t)
 
 ;; This is only needed once, near the top of the file
 (eval-when-compile
@@ -339,16 +340,15 @@
   :ensure t
   :custom
   (avy-style 'de-bruijn)
+  (avy-background t)
   :bind (("H-." . avy-goto-word-or-subword-1)
          ("H-," . avy-goto-char)
          ("M-g g" . avy-goto-line)
          )
   ;; :chords (("jj" . avy-goto-line)
   ;;          ("jk" . avy-goto-word)
-  ;;         )
-  :config
-  (setq avy-background t
-        ))
+
+  )
 
 
 ;; needed to tweak the matching algorithm used by ivy
@@ -375,8 +375,8 @@
   (ivy-extra-directories nil)
   (ivy-use-virtual-buffers t)
   (ivy-virtual-abbreviate 'abbreviate)
+  (ivy-count-format "")
   :init
-  (setq ivy-count-format "")
   (ivy-mode)
   :bind
   ("s-b" . ivy-switch-buffer)
@@ -388,9 +388,10 @@
 
 (use-package ace-window
   :ensure t
-  :config
-  (global-set-key (kbd "s-w") 'ace-window)
-  (global-set-key [remap other-window] 'ace-window))
+  :bind
+  (("s-w" . ace-window)
+   ([remap other-window] . ace-window))
+  )
 
 
 (use-package swiper
@@ -401,11 +402,11 @@
 
 (use-package counsel
   :ensure t
-  :init
-  (setq counsel-find-file-at-point t)
-  (setq counsel-grep-base-command
-        "rg -i -M 120 --no-heading --line-number --color never %s %s")
-  (setq counsel-grep-swiper-limit 30000)
+  :custom
+  (counsel-find-file-at-point t)
+  (counsel-grep-base-command
+   "rg -i -M 120 --no-heading --line-number --color never %s %s")
+  (counsel-grep-swiper-limit 30000)
   :bind
   (("M-x" . counsel-M-x)
    ("C-x C-f" . counsel-find-file)
@@ -437,19 +438,16 @@
 
 
 (use-package dired
-  :config
-  ;; dired - reuse current buffer by pressing 'a'
-
+  :custom
   ;; always delete and copy recursively
-  (setq dired-recursive-deletes 'always)
-  (setq dired-recursive-copies 'always)
-
-  ;; if there is a dired buffer displayed in the next window, use its
-  ;; current subdir, instead of the current subdir of this dired buffer
-  (setq dired-dwim-target t)
-
+  (dired-recursive-deletes 'always)
+  (dired-recursive-copies 'always)
+  (dired-dwim-target t)
+  :config
   ;; enable some really cool extensions like C-x C-j(dired-jump)
   (require 'dired-x))
+
+(put 'dired-find-alternate-file 'disabled nil)
 
 (use-package company
   :ensure t
@@ -521,11 +519,12 @@
   (prog-mode . symbol-overlay-mode))
 
 
+;; show available keybindings after you start typing
 (use-package which-key
   :ensure t
-  :config
-  (which-key-mode +1))
-
+  :diminish ""
+  :config (which-key-mode +1)
+  )
 
 (use-package discover-my-major
   :ensure t
@@ -535,11 +534,12 @@
 
 (use-package undo-tree
   :ensure t
-  :config
+  :custom
   ;; autosave the undo-tree history
-  (setq undo-tree-history-directory-alist
-        `((".*" . ,temporary-file-directory)))
-  (setq undo-tree-auto-save-history t))
+  (undo-tree-auto-save-history t)
+  (undo-tree-history-directory-alist
+   `((".*" . ,temporary-file-directory)))
+  )
 
 
 (use-package projectile
@@ -553,7 +553,7 @@
   (:map projectile-mode-map
         ("s-p" . projectile-command-map))
   :config
-  (projectile-mode)
+  (projectile-mode +1)
   )
 
 (use-package counsel-projectile
@@ -586,12 +586,11 @@
 
 (use-package ruby-mode
   :ensure t
-  :init (setq ruby-indent-level 2
-              ruby-indent-tabs-mode nil)
+  :init
   (add-to-list 'flycheck-disabled-checkers 'ruby-reek)
   :config
   (use-package smartparens-ruby)
-  (subword-mode)
+  :hook (ruby-mode . subword-mode)
   :interpreter "ruby"
   :bind
   (([(meta down)] . ruby-forward-sexp)
@@ -814,12 +813,6 @@
   (beacon-mode +1)
   )
 
-;; show available keybindings after you start typing
-(use-package which-key
-  :ensure t
-  :diminish ""
-  :config (which-key-mode +1)
-  )
 
 ;; edit grep-buffers, e.g., ivy-occur
 (use-package wgrep
@@ -829,11 +822,11 @@
   )
 
 (use-package ws-butler
-:ensure t
-:config
-(setq ws-butler-keep-whitespace-before-point nil)
-
- (ws-butler-global-mode)
+  :ensure t
+  :custom
+  (ws-butler-keep-whitespace-before-point nil)
+  :config
+  (ws-butler-global-mode)
 )
 
 (defun jl/recompile-elc-on-save ()
@@ -861,14 +854,12 @@
         ("C-c C-c" . eval-defun)
         ("C-c C-b" . eval-buffer))
   :hook  ((emacs-lisp-mode . jl/el-mode-hook)
-          (emacs-lisp-mode . eldoc-mode)
-          (lisp-interaction-mode . eldoc-mode)
-          (eval-expression-minibuffer-setup . eldoc-mode))
+          ((eval-expression-minibuffer-setup lisp-interaction-mode emacs-lisp-mode) . eldoc-mode))
   )
 
 
 
-(put 'dired-find-alternate-file 'disabled nil)
+
 
 
 (use-package yasnippet
@@ -902,6 +893,7 @@
 
 (use-package org
   :ensure t
+  :mode ("\\.org\\'")
   :custom (org-export-backends '(ascii html md)))
 
 (use-package mediawiki
