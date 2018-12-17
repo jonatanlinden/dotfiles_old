@@ -224,17 +224,17 @@
 
 (use-package smartparens
   :ensure t
-  :hook ((lisp-mode emacs-lisp-mode) . turn-on-smartparens-strict-mode)
+  :hook ((lisp-mode emacs-lisp-mode) . smartparens-strict-mode)
+  :custom
+  (sp-base-key-bindings 'paredit)
+  (sp-autoskip-closing-pair 'always)
+  (sp-hybrid-kill-entire-symbol nil)
+  (sp-show-pair-delay 0)
   :config
   (require 'smartparens-config)
-  (setq sp-base-key-bindings 'paredit
-        sp-autoskip-closing-pair 'always
-        sp-hybrid-kill-entire-symbol nil
-        sp-show-pair-delay 0
-        )
+  (smartparens-global-mode t)
   (sp-use-paredit-bindings)
   (show-smartparens-global-mode +1)
-  (smartparens-global-mode t)
   :diminish (smartparens-mode .  "()"))
 
 (use-package abbrev
