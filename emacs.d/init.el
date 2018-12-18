@@ -305,7 +305,6 @@
          ("C-c TAB" . crux-indent-rigidly-and-copy-to-clipboard)
          ("C-c I" . crux-find-user-init-file)
          ("C-c S" . crux-find-shell-init-file)
-         ("s-r" . crux-recentf-find-file)
          ("s-j" . crux-top-join-line)
          ("C-^" . crux-top-join-line)
          ("s-k" . crux-kill-whole-line)
@@ -407,6 +406,8 @@
   (counsel-grep-base-command
    "rg -i -M 120 --no-heading --line-number --color never %s %s")
   (counsel-grep-swiper-limit 30000)
+  :init
+  (w32-register-hot-key [s-r])
   :bind
   (("M-x" . counsel-M-x)
    ("C-x C-f" . counsel-find-file)
@@ -420,6 +421,7 @@
    ("C-c a" . counsel-ag)
    ("C-c r" . counsel-rg)
    ("C-x l" . counsel-locate)
+   ("s-r" . counsel-recentf)
    ([remap isearch-forward]  . counsel-grep-or-swiper)
    ([remap isearch-backward] . counsel-grep-or-swiper)
    :map minibuffer-local-map
@@ -553,7 +555,9 @@
   (w32-register-hot-key [s-p])
   :bind
   (:map projectile-mode-map
-        ("s-p" . projectile-command-map))
+        ("s-p" . projectile-command-map)
+        ("s-p r" . projectile-ripgrep))
+
   :config
   (projectile-mode +1)
   )
@@ -580,7 +584,7 @@
 )
 
 (use-package inf-ruby
-  :ensure t
+  :ensure t
   :config
   (add-to-list 'inf-ruby-implementations '("ruby" . "irb-2.3.1 --prompt default --noreadline -r irb/completion"))
   (setq inf-ruby-default-implementation "ruby")
@@ -602,11 +606,13 @@
 
 (use-package robe
   :ensure t
+  :after (ruby-mode inf-ruby)
   :bind (:map ruby-mode-map
               ("C-M-." . robe-jump))
   :config
   (make-local-variable 'company-backends)
   (push 'company-robe company-backends)
+  (inf-ruby-console-auto)
   :hook (ruby-mode . robe-mode)
   ;; :config
   ;; (defadvice inf-ruby-console-auto
@@ -727,6 +733,9 @@
     (setq-local sp-escape-quotes-after-insert nil))
 
 (use-package c++-mode
+  :after (smartparens)
+  :bind
+  ([remap kill-sexp] . sp-kill-hybrid-sexp)
   :hook (c++-mode . jl/c++-mode-hook)
   )
 
