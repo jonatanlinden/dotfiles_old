@@ -584,7 +584,7 @@
 )
 
 (use-package inf-ruby
-  :ensure t
+  :ensure t
   :config
   (add-to-list 'inf-ruby-implementations '("ruby" . "irb-2.3.1 --prompt default --noreadline -r irb/completion"))
   (setq inf-ruby-default-implementation "ruby")
