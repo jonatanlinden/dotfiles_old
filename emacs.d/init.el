@@ -114,6 +114,9 @@
 ;; disable startup screen
 (setq inhibit-startup-screen t)
 
+;; Time-stamp: <> in the first 8 lines?
+(add-hook 'before-save-hook 'time-stamp)
+
 ;; nice scrolling
 (setq scroll-margin 0
       scroll-conservatively 100000
@@ -543,6 +546,7 @@
    `((".*" . ,temporary-file-directory)))
   )
 
+(w32-register-hot-key [s-p])
 
 (use-package projectile
   :ensure t
@@ -552,13 +556,12 @@
   (projectile-cache-file (expand-file-name  "projectile.cache" jonatan-savefile-dir))
   (projectile-svn-command "find . -type f -not -iwholename '*.svn/*' -print0")
   ;; on windows,
-  (w32-register-hot-key [s-p])
   :bind
   (:map projectile-mode-map
         ("s-p" . projectile-command-map)
         ("s-p r" . projectile-ripgrep))
 
-  :config
+  :init
   (projectile-mode +1)
   )
 
@@ -597,12 +600,19 @@
   :config
   (use-package smartparens-ruby)
   :hook (ruby-mode . subword-mode)
+  (ruby-mode . eldoc-mode)
   :interpreter "ruby"
   :bind
   (([(meta down)] . ruby-forward-sexp)
    ([(meta up)]   . ruby-backward-sexp)
    (("C-c C-e"    . ruby-send-region)))
   )
+
+(use-package yard-mode
+  :ensure t
+  :diminish yard-mode
+  :after ruby-mode
+  :hook ruby-mode)
 
 (use-package robe
   :ensure t
@@ -711,12 +721,12 @@
 ;; (setq sp-escape-quotes-after-insert nil)
 
 (use-package irony
-  :if *is-mac*
-  :commands irony-mode
   :ensure t
+  :commands irony-mode
   :config
-  (unless (irony--find-server-executable)
+  (unless (or *is-win* (irony--find-server-executable))
     (call-interactively #'irony-install-server))
+  (setq w32-pipe-read-delay 0)
   :hook ((irony-mode . irony-cdb-autosetup-compile-options)
          (c++-mode . irony-mode))
   )
@@ -726,6 +736,12 @@
   :ensure t
   :hook (irony-mode . (lambda ()
                         (add-to-list (make-local-variable 'company-backends) 'company-irony)))
+  )
+
+(use-package irony-eldoc
+  :after irony
+  :ensure t
+  :hook irony-mode
   )
 
 (defun jl/c++-mode-hook ()
@@ -904,7 +920,7 @@
 
 (use-package org
   :ensure t
-  :mode ("\\.org\\'")
+  :mode ("\\.org\\'" . org-mode)
   :custom (org-export-backends '(ascii html md)))
 
 (use-package mediawiki
