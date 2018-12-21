@@ -38,9 +38,27 @@
       (*is-mac* (set-face-attribute 'default nil :family "Menlo" :height 140))
 )
 
+
+
+
 (when (memq window-system '(mac ns))
   (add-to-list 'default-frame-alist '(ns-appearance . light))
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
+
+
+
+
+
+
+;; TRY: check if this prevents freezing during command evaluation
+(defun jl/minibuffer-setup-hook ()
+  (setq gc-cons-threshold most-positive-fixnum))
+
+(defun jl/minibuffer-exit-hook ()
+  (setq gc-cons-threshold 800000))
+
+;;(add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
+;;(add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
 
 (require 'package)
 
@@ -431,9 +449,6 @@
    ("C-r" . counsel-minibuffer-history))
   )
 
-(use-package wgrep
-  :ensure t
-  )
 
 ;; temporarily highlight changes from yanking, etc
 (use-package volatile-highlights
@@ -581,6 +596,7 @@
 
 (use-package flycheck-clang-tidy
   :if (executable-find "clang-tidy")
+  :custom (flycheck-clang-tidy-build-path "../../_build")
   :after (flycheck)
   :ensure t
   :hook (c++-mode . flycheck-clang-tidy-setup)
@@ -638,7 +654,10 @@
   :diminish ruby-tools-mode)
 
 (use-package markdown-mode
-  :ensure t)
+  :ensure t
+  :custom (markdown-fontify-code-block-natively t)
+    :mode (("\\.md\\'" . gfm-mode)
+           ("\\.markdown\\'" . gfm-mode)))
 
 (use-package web-mode
   :ensure t
@@ -723,6 +742,9 @@
 (use-package irony
   :ensure t
   :commands irony-mode
+  :bind ((:map irony-mode-map
+      ([remap completion-at-point] . counsel-irony))
+         )
   :config
   (unless (or *is-win* (irony--find-server-executable))
     (call-interactively #'irony-install-server))
@@ -752,7 +774,7 @@
   :after (smartparens)
   :bind
   ([remap kill-sexp] . sp-kill-hybrid-sexp)
-  :hook (c++-mode . jl/c++-mode-hook)
+;;  :hook (c++-mode . jl/c++-mode-hook)
   )
 
 

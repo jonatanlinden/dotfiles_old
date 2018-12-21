@@ -1,0 +1,8 @@
+
+*Loading package smart-mode-line...done (0.147s)
+*Loading package recentf...done (0.112s)
+*Configuring package volatile-highlights...done (0.177s)
+*Loading package volatile-highlights...done (0.225s)
+*Loading package dired...done (0.216s)
+*Loading package undo-tree...done (0.100s)
+*Configuring package smartparens...done (0.119s)
