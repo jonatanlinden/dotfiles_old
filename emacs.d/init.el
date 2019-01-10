@@ -471,6 +471,7 @@
 
 (use-package company
   :ensure t
+  :diminish (company-mode . "(c)")
   :commands company-mode
   :custom (company-minimum-prefix-length 2)
   (company-global-modes '(not text-mode))
@@ -479,7 +480,6 @@
         '((company-files
            company-capf
            company-yasnippet) company-dabbrev))
-
   :bind
   (:map company-active-map
         ("C-e" . company-other-backend)
@@ -566,6 +566,7 @@
 (use-package projectile
   :ensure t
   :custom
+  (projectile-mode-line-prefix "P")
   (projectile-completion-system 'ivy)
   (projectile-enable-caching t)
   (projectile-cache-file (expand-file-name  "projectile.cache" jonatan-savefile-dir))
@@ -616,7 +617,6 @@
   :config
   (use-package smartparens-ruby)
   :hook (ruby-mode . subword-mode)
-  (ruby-mode . eldoc-mode)
   :interpreter "ruby"
   :bind
   (([(meta down)] . ruby-forward-sexp)
@@ -891,7 +891,6 @@
 
 
 (defun jl/el-mode-hook ()
-  (eldoc-mode +1)
   (jl/recompile-elc-on-save)
   (smartparens-strict-mode +1)
   (rainbow-delimiters-mode +1)
@@ -903,7 +902,8 @@
         ("C-c C-c" . eval-defun)
         ("C-c C-b" . eval-buffer))
   :hook  ((emacs-lisp-mode . jl/el-mode-hook)
-          ((eval-expression-minibuffer-setup lisp-interaction-mode emacs-lisp-mode) . eldoc-mode))
+          ;;((eval-expression-minibuffer-setup lisp-interaction-mode emacs-lisp-mode) . eldoc-mode)
+          )
   )
 
 
@@ -1014,6 +1014,11 @@
   (save-excursion
     (mark-defun)
     (clang-format (region-beginning) (region-end))))
+
+(use-package esup
+  :ensure t
+  :commands esup
+  )
 
 (provide 'init)
 ;;; init.el ends here
