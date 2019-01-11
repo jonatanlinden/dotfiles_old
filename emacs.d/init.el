@@ -566,7 +566,7 @@
 (use-package projectile
   :ensure t
   :custom
-  (projectile-mode-line-prefix "P")
+  (projectile-mode-line-prefix " P")
   (projectile-completion-system 'ivy)
   (projectile-enable-caching t)
   (projectile-cache-file (expand-file-name  "projectile.cache" jonatan-savefile-dir))
