@@ -592,6 +592,7 @@
   :custom
   (flycheck-checker-error-threshold 500)
   (flycheck-check-syntax-automatically '(save))
+  (flycheck-mode-line-prefix "FC")
   :init (global-flycheck-mode t)
   )
 
