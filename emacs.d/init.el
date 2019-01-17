@@ -926,7 +926,6 @@
 (use-package arm-lookup
   :load-path "lisp/arm-lookup"
   :custom
-  (arm-lookup-txt "d:/work/trunk/armdoc/DDI0487D_a_armv8_arm.txt")
   (arm-lookup-browse-pdf-function 'arm-lookup-browse-pdf-sumatrapdf)
   :commands (arm-lookup)
                                         ;:bind (:map asm-mode-map ("M-." . arm-lookup))
