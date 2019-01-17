@@ -82,6 +82,8 @@
 (unless (file-exists-p jonatan-personal-dir)
   (make-directory jonatan-personal-dir))
 
+
+
 ;; config changes made through the customize UI will be store here
 (setq custom-file (expand-file-name "custom.el" jonatan-personal-dir))
 
@@ -92,6 +94,8 @@
 
 ;; (load custom-file)
 
+(setq auth-sources
+    '((:source "~/.emacs.d/.authinfo.gpg")))
 
 (when *is-win*
   (setq w32-pass-lwindow-to-system nil
@@ -101,7 +105,10 @@
        w32-apps-modifier 'hyper) ;; Menu key
   )
 
-
+(when *is-win*
+  (progn
+    (w32-register-hot-key [s-r])
+    (w32-register-hot-key [s-p])))
 
 
 
@@ -330,10 +337,10 @@
          ("C-^" . crux-top-join-line)
          ("s-k" . crux-kill-whole-line)
          ("C-<backspace>" . crux-kill-line-backwards)
-         ("s-o" . crux-smart-open-line-above)
+         ("C-o" . crux-smart-open-line-above)
+         ([remap open-line] . crux-smart-open-line-above)
          ([remap move-beginning-of-line] . crux-move-beginning-of-line)
          ([(shift return)] . crux-smart-open-line)
-         ([(control shift return)] . crux-smart-open-line-above)
          ([remap kill-whole-line] . crux-kill-whole-line)
          ("C-c s" . crux-ispell-word-then-abbrev)))
 
@@ -427,8 +434,6 @@
   (counsel-grep-base-command
    "rg -i -M 120 --no-heading --line-number --color never %s %s")
   (counsel-grep-swiper-limit 30000)
-  :init
-  (w32-register-hot-key [s-r])
   :bind
   (("M-x" . counsel-M-x)
    ("C-x C-f" . counsel-find-file)
@@ -560,8 +565,6 @@
   (undo-tree-history-directory-alist
    `((".*" . ,temporary-file-directory)))
   )
-
-(w32-register-hot-key [s-p])
 
 (use-package projectile
   :ensure t
@@ -958,14 +961,14 @@
   :if window-system
   :ensure t
   :commands (alert)
-  :init
-  (setq alert-default-style 'notifier))
+  :custom (alert-default-style 'notifier)
+  )
 
 (use-package slack
   :if window-system
+  :ensure t
   :commands (slack-start)
-  :init
-  (setq slack-prefer-current-team t)
+  :custom (slack-prefer-current-team t)
   )
 
 (use-package cmake-mode
@@ -1020,6 +1023,9 @@
   :ensure t
   :commands esup
   )
+
+
+
 
 (provide 'init)
 ;;; init.el ends here
