@@ -267,9 +267,9 @@
   :diminish (smartparens-mode .  "()"))
 
 (use-package abbrev
-  :init
-  (setq save-abbrevs 'silently
-        abbrev-mode t)
+  :diminish ""
+  :custom (save-abbrevs 'silently)
+  :init (setq abbrev-mode t)
   :config
   (if (file-exists-p abbrev-file-name)
       (quietly-read-abbrev-file)))
@@ -308,13 +308,14 @@
   (savehist-mode +1))
 
 (use-package recentf
+  :custom (recentf-max-saved-items 500)
+  (recentf-max-menu-items 15)
+  ;; disable recentf-cleanup on Emacs start, because it can cause
+  ;; problems with remote files
+  (recentf-auto-cleanup 'never)
+  (recentf-save-file (expand-file-name "recentf" jonatan-savefile-dir))
+  (recentf-exclude '(".*-autoloads\\.el\\'" "COMMIT_EDITMSG\\'"))
   :config
-  (setq recentf-save-file (expand-file-name "recentf" jonatan-savefile-dir)
-        recentf-max-saved-items 500
-        recentf-max-menu-items 15
-        ;; disable recentf-cleanup on Emacs start, because it can cause
-        ;; problems with remote files
-        recentf-auto-cleanup 'never)
   (recentf-mode +1))
 
 (use-package crux
@@ -567,21 +568,22 @@
   )
 
 (use-package projectile
+  :disabled
   :ensure t
-  :custom
-  (projectile-mode-line-prefix " P")
-  (projectile-completion-system 'ivy)
-  (projectile-enable-caching t)
-  (projectile-cache-file (expand-file-name  "projectile.cache" jonatan-savefile-dir))
-  (projectile-svn-command "find . -type f -not -iwholename '*.svn/*' -print0")
+  ;;:custom
+  ;;(projectile-mode-line-prefix " P")
+  ;;(projectile-completion-system 'ivy)
+  ;;(projectile-enable-caching t)
+  ;;(projectile-cache-file (expand-file-name  "projectile.cache" jonatan-savefile-dir))
+  ;;(projectile-svn-command "find . -type f -not -iwholename '*.svn/*' -print0")
   ;; on windows,
-  :bind
-  (:map projectile-mode-map
-        ("s-p" . projectile-command-map)
-        ("s-p r" . projectile-ripgrep))
+  ;;:bind
+  ;;(:map projectile-mode-map
+        ;;("s-p" . projectile-command-map)
+        ;;("s-p r" . projectile-ripgrep))
 
-  :init
-  (projectile-mode +1)
+  ;;:init
+  ;;(projectile-mode +1)
   )
 
 (use-package counsel-projectile
@@ -642,7 +644,7 @@
   :config
   (make-local-variable 'company-backends)
   (push 'company-robe company-backends)
-  (inf-ruby-console-auto)
+  ;;(inf-ruby-console-auto)
   :hook (ruby-mode . robe-mode)
   ;; :config
   ;; (defadvice inf-ruby-console-auto
@@ -656,6 +658,7 @@
   :commands ruby-tools-mode
   :hook (ruby-mode . ruby-tools-mode)
   :diminish ruby-tools-mode)
+
 
 (use-package markdown-mode
   :ensure t
@@ -703,6 +706,10 @@
   :hook (dired-mode . diff-hl-dired-mode)
   )
 
+(use-package hl-todo
+  :ensure t
+  )
+
 (use-package whitespace
   :init (setq whitespace-line-column 80))
 ;  :hook (asm-mode . whitespace-mode)
@@ -727,6 +734,9 @@
         tab-stop-list (number-sequence 8 64 8)
         ))
 
+(use-package string-inflection
+  :ensure t
+  )
 
 (use-package asm-mode
   :mode ("\\.i\\'" "\\.s\\'")
@@ -778,7 +788,7 @@
   :after (smartparens)
   :bind
   ([remap kill-sexp] . sp-kill-hybrid-sexp)
-;;  :hook (c++-mode . jl/c++-mode-hook)
+  :hook (c++-mode . jl/c++-mode-hook)
   )
 
 
@@ -932,6 +942,13 @@
   :bind (("M-." . arm-lookup))
   )
 
+
+(use-package open-in-msvs
+  :if *is-win*
+  :load-path "lisp/open-in-msvs"
+  :commands (open-in-msvs)
+  )
+
 (use-package burs-mode
   :load-path "lisp/burs-mode"
   :mode ("\\.tg\\'")
@@ -946,7 +963,18 @@
 (use-package org
   :ensure t
   :mode ("\\.org\\'" . org-mode)
-  :custom (org-export-backends '(ascii html md)))
+  :custom (org-export-backends '(ascii html md))
+  (org-directory "d:/work/notes")
+  :bind (("C-c c" . org-capture))
+  :config
+  (setq org-capture-templates
+        '(("t" "Todo [inbox]" entry
+           (file+headline "d:/work/notes/todo.org" "Tasks")
+           "* TODO %i%? %a")
+          ))
+  )
+
+
 
 (use-package mediawiki
   :ensure t
@@ -1019,6 +1047,7 @@
     (clang-format (region-beginning) (region-end))))
 
 (use-package esup
+  :disabled
   :ensure t
   :commands esup
   )
