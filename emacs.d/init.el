@@ -844,7 +844,7 @@
   )
 
 (general-define-key
- :keymaps 'c++-mode-map
+ :keymaps 'c-mode-map
  "C-c C-o" '(ff-find-other-file :which-key "toggle header/impl file")
  )
 
