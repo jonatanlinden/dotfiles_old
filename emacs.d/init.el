@@ -568,22 +568,21 @@
   )
 
 (use-package projectile
-  :disabled
   :ensure t
-  ;;:custom
-  ;;(projectile-mode-line-prefix " P")
-  ;;(projectile-completion-system 'ivy)
-  ;;(projectile-enable-caching t)
-  ;;(projectile-cache-file (expand-file-name  "projectile.cache" jonatan-savefile-dir))
-  ;;(projectile-svn-command "find . -type f -not -iwholename '*.svn/*' -print0")
+  :custom
+  (projectile-mode-line-prefix " P")
+  (projectile-completion-system 'ivy)
+  (projectile-enable-caching t)
+  (projectile-cache-file (expand-file-name  "projectile.cache" jonatan-savefile-dir))
+  (projectile-svn-command "find . -type f -not -iwholename '*.svn/*' -print0")
   ;; on windows,
-  ;;:bind
-  ;;(:map projectile-mode-map
-        ;;("s-p" . projectile-command-map)
-        ;;("s-p r" . projectile-ripgrep))
+  :bind
+  (:map projectile-mode-map
+        ("s-p" . projectile-command-map)
+        ("s-p r" . projectile-ripgrep))
 
-  ;;:init
-  ;;(projectile-mode +1)
+  :init
+  (projectile-mode +1)
   )
 
 (use-package counsel-projectile
