@@ -618,6 +618,7 @@
 
 (use-package ruby-mode
   :ensure t
+  :custom (ruby-align-chained-calls t)
   :init
   (add-to-list 'flycheck-disabled-checkers 'ruby-reek)
   :config
