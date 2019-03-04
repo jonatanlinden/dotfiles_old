@@ -781,9 +781,6 @@
   :hook irony-mode
   )
 
-(defun jl/c++-mode-hook ()
-    "FIX prevent bug in smartparens."
-    (setq-local sp-escape-quotes-after-insert nil))
 
 (use-package c++-mode
   :after (smartparens)
@@ -832,7 +829,12 @@
   :hook jl/c++-mode-hook
   )
 
-(defun jl/c++-mode-hook (setq-local sp-escape-quotes-after-insert nil))
+(defun jl/c++-mode-hook ()
+  "FIX prevent bug in smartparens."
+  (progn
+    (setq sp-escape-quotes-after-insert nil)
+    (make-local-variable 'sp-escape-quotes-after-insert))
+    )
 
 
 (use-package clang-format
