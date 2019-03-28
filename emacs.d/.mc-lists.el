@@ -15,6 +15,7 @@
         electric-newline-and-maybe-indent
         indent-for-tab-command
         kill-region
+        mark-word
         sp-backward-delete-char
         sp-backward-kill-word
         sp-delete-char

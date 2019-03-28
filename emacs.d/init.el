@@ -594,7 +594,7 @@
 (use-package flycheck
   :ensure t
   :custom
-  (flycheck-checker-error-threshold 500)
+  (flycheck-checker-error-threshold 1605)
   (flycheck-check-syntax-automatically '(save))
   (flycheck-mode-line-prefix "FC")
   :init (global-flycheck-mode t)
@@ -666,20 +666,6 @@
     :mode (("\\.md\\'" . gfm-mode)
            ("\\.markdown\\'" . gfm-mode)))
 
-(use-package web-mode
-  :ensure t
-  :config
-  (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-  (setq web-mode-ac-sources-alist
-        '(("css" . (ac-source-css-property))
-          ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
-
-  (setq web-mode-enable-auto-closing t)
-  (setq web-mode-tag-auto-close-style 2)
-  (setq web-mode-enable-auto-quoting t)
-  (use-package web-mode-edit-element :ensure t)
-  :hook (web-mode . jl/web-mode-hook)
-  )
 
 (defun jl/web-mode-hook ()
   "Hooks for Web mode."
@@ -687,6 +673,21 @@
     (setq web-mode-markup-indent-offset 2)
     (web-mode-edit-element-minor-mode))
   )
+
+(use-package web-mode
+  :ensure t
+  :config
+  (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+  (setq web-mode-ac-sources-alist
+        '(("css" . (ac-source-css-property))
+          ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
+  (setq web-mode-enable-auto-closing t)
+  (setq web-mode-tag-auto-close-style 2)
+  (setq web-mode-enable-auto-quoting t)
+  (use-package web-mode-edit-element :ensure t)
+  :hook (web-mode . jl/web-mode-hook)
+  )
+
 
 (use-package json-mode
   :ensure t
@@ -782,7 +783,7 @@
 
 
 (use-package c++-mode
-  :after (smartparens)
+  :after smartparens
   :bind
   ([remap kill-sexp] . sp-kill-hybrid-sexp)
   :hook (c++-mode . jl/c++-mode-hook)
@@ -821,13 +822,6 @@
   :bind ("M-o" . reveal-in-osx-finder)
 )
 
-
-
-
-(use-package c++-mode
-  :hook jl/c++-mode-hook
-  )
-
 (defun jl/c++-mode-hook ()
   "FIX prevent bug in smartparens."
   (progn
@@ -845,7 +839,7 @@
   )
 
 (general-define-key
- :keymaps 'c-mode-map
+ :keymaps 'c-mode-base-map
  "C-c C-o" '(ff-find-other-file :which-key "toggle header/impl file")
  )
 
@@ -1047,6 +1041,8 @@
   (save-excursion
     (mark-defun)
     (clang-format (region-beginning) (region-end))))
+
+
 
 (use-package esup
   :disabled
