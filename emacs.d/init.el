@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
+(defvar before-init-time (current-time) "Time when init.el was started")
+
 ;; reduce the frequency of garbage collection by making it happen on
 ;; each 50MB of allocated data (the default is on every 0.76MB)
 (setq gc-cons-threshold 50000000)
@@ -11,6 +13,13 @@
 ;; reset frequency of garbage collection once emacs has booted
 (add-hook 'emacs-startup-hook #'jl/reset-gc-threshold)
 
+(add-hook 'after-init-hook
+          (lambda ()
+            (message "Emacs ready in %s with %d garbage collections."
+                     (format "%.2f seconds"
+                             (float-time
+                              (time-subtract after-init-time before-init-time)))
+                     gcs-done)))
 
 (defvar *is-mac* (eq system-type 'darwin))
 (defvar *is-win* (eq system-type 'windows-nt))
