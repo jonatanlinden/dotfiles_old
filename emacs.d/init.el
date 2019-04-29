@@ -418,8 +418,8 @@
   :ensure t
   :bind
   (("s-w" . ace-window)
-   ([remap other-window] . ace-window))
-  )
+   ;([remap other-window] . ace-window))
+   ))
 
 
 (use-package swiper
@@ -449,7 +449,7 @@
    ("C-c r" . counsel-rg)
    ("C-x l" . counsel-locate)
    ("s-r" . counsel-recentf)
-   ([remap isearch-forward]  . counsel-grep-or-swiper)
+   ([remap isearch-forward]  . swiper-isearch)
    ([remap isearch-backward] . counsel-grep-or-swiper)
    :map minibuffer-local-map
    ("C-r" . counsel-minibuffer-history))
