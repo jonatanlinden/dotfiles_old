@@ -136,8 +136,8 @@
 ;; Always load newest byte code
 (setq load-prefer-newer t)
 
-;; warn when opening files bigger than 100MB
-(setq large-file-warning-threshold 100000000)
+;; warn when opening files bigger than 10MB
+(setq large-file-warning-threshold 10000000)
 
 ;; the blinking cursor is nothing, but an annoyance
 (blink-cursor-mode -1)
@@ -822,7 +822,7 @@
 ;;; open current file in explorer/finder
 (when *is-win*
       (general-define-key
-       "M-o" #'jl/open-folder-in-explorer
+       "M-O" #'jl/open-folder-in-explorer
        ))
 
 (use-package reveal-in-osx-finder
@@ -952,6 +952,7 @@
   :if *is-win*
   :load-path "lisp/open-in-msvs"
   :commands (open-in-msvs)
+  :bind ("M-o" . open-in-msvs)
   )
 
 (use-package burs-mode
@@ -979,7 +980,14 @@
           ))
   )
 
+(use-package ox-mediawiki
+  :ensure t
+  :after (org mediawiki)
+  )
 
+(use-package ffap
+  :custom (ffap-machine-p-known 'reject)
+  )
 
 (use-package mediawiki
   :ensure t
@@ -1057,6 +1065,36 @@
   :disabled
   :ensure t
   :commands esup
+  )
+
+(use-package ivy-hydra
+  :ensure t
+  :after (ivy hydra)
+  )
+
+(when (eq window-system 'w32)
+  (setq tramp-default-method "plink")
+  )
+
+(winner-mode 1)
+
+(defvar ediff-last-windows nil
+  "Last ediff window configuration.")
+
+(defun store-pre-ediff-winconfig ()
+  (setq ediff-last-windows (current-window-configuration)))
+
+(defun restore-pre-ediff-winconfig ()
+  (set-window-configuration ediff-last-windows))
+
+(use-package ediff
+  :custom
+  (ediff-diff-options "-w")
+  (ediff-ignore-similar-regions t)
+  (ediff-window-setup-function 'ediff-setup-windows-plain)
+  :hook
+  (ediff-before-setup-hook . store-pre-ediff-winconfig)
+  (ediff-quit-hook . restore-pre-ediff-winconfig)
   )
 
 
