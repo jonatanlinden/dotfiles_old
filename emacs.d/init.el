@@ -995,7 +995,9 @@
   :init
   ;; workaround, unable to run mediawiki-open otherwise
   (setq url-user-agent "EMACS" ;
-        ))
+        )
+  :hook (mediawiki-mode . visual-line-mode)
+  )
 
 (use-package alert
   :if window-system
@@ -1097,7 +1099,10 @@
   (ediff-quit-hook . restore-pre-ediff-winconfig)
   )
 
-
+(use-package google-this
+  :ensure t
+  :config (google-this-mode 1)
+  )
 
 
 (provide 'init)
