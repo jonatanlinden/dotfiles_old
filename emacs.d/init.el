@@ -165,8 +165,7 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 
 ;; show trailing whitespace in editor
-(setq-default show-trailing-whitespace t)
-(setq-default show-tabs)
+;;(setq-default show-trailing-whitespace t)
 
 ;; more useful frame title, that show either a file or a
 ;; buffer name (if the buffer isn't visiting a file)
@@ -380,8 +379,12 @@
   (avy-background t)
   :bind (("H-." . avy-goto-word-or-subword-1)
          ("H-," . avy-goto-char)
-         ("M-g g" . avy-goto-line)
+         ("M--" . avy-goto-line)
+         ([remap goto-line] . avy-goto-line)
          )
+  :config
+  (avy-setup-default)
+  ;;(global-set-key (kbd "C-c C-j") 'avy-resume)
   ;; :chords (("jj" . avy-goto-line)
   ;;          ("jk" . avy-goto-word)
 
@@ -412,7 +415,7 @@
   (ivy-extra-directories nil)
   (ivy-use-virtual-buffers t)
   (ivy-virtual-abbreviate 'abbreviate)
-  (ivy-count-format "")
+  ;;(ivy-count-format "")
   :init
   (ivy-mode)
   :bind
@@ -444,14 +447,15 @@
   (counsel-grep-base-command
    "rg -i -M 120 --no-heading --line-number --color never %s %s")
   (counsel-grep-swiper-limit 30000)
+  :config
+  (if *is-win*
+      (setq counsel-git-log-cmd "set GIT_PAGER=cat && git log --grep \"%s\""))
   :bind
   (("M-x" . counsel-M-x)
    ("C-x C-f" . counsel-find-file)
    ("<f1> f" . counsel-describe-function)
    ("<f1> v" . counsel-describe-variable)
    ("<f1> l" . counsel-find-library)
-   ("<f2> i" . counsel-info-lookup-symbol)
-   ("<f2> u" . counsel-unicode-char)
    ("C-c g" . counsel-git)
    ("C-c j" . counsel-git-grep)
    ("C-c a" . counsel-ag)
@@ -515,7 +519,11 @@
 
 (defun jl/prog-mode-hook ()
   (make-local-variable 'company-backends)
-  (push 'company-keywords company-backends))
+  (push 'company-keywords company-backends)
+  ;; show trailing whitespace in editor
+  (setq show-trailing-whitespace t)
+  ;;(setq show-tabs)
+  )
 
 (use-package company-flx
   :ensure t
@@ -925,7 +933,11 @@
           )
   )
 
-
+(use-package request
+  :ensure t
+  :custom (request-curl (if *is-win*  "c:/ProgramData/chocolatey/bin/curl.exe" "curl")
+                        )
+  )
 
 
 
@@ -1003,7 +1015,7 @@
   :if window-system
   :ensure t
   :commands (alert)
-  :custom (alert-default-style 'notifier)
+  :custom (alert-default-style 'mode-line)
   )
 
 (use-package slack
@@ -1041,7 +1053,6 @@
 
 (use-package magit
   :ensure t
-  :defer t
   :bind (("C-x g" . magit-status))
   :config
   )
@@ -1101,9 +1112,31 @@
 
 (use-package google-this
   :ensure t
+  :diminish ""
   :config (google-this-mode 1)
   )
 
+(use-package bm
+  :ensure t
+  :custom (bm-restore-repository-on-load t)
+  (bm-highlight-style 'bm-highlight-only-fringe)
+  :init
+  ;; restore on load (even before you require bm)
+  :hook ((after-init . bm-repository-load)
+         (kill-buffer . bm-buffer-save)
+         (after-save . bm-buffer-save)
+         (vc-before-checkin . bm-buffer-save)
+         (find-file . bm-buffer-restore)
+         (after-revert . bm-buffer-restore)
+         (kill-emacs . (lambda ()
+                         (bm-buffer-save-all)
+                         (bm-repository-save)
+                         ))
+         )
+  :bind (("<f2>" . bm-next)
+         ("S-<f2>" . bm-previous)
+         ("C-<f2>" . bm-toggle))
+  )
 
 (provide 'init)
 ;;; init.el ends here
