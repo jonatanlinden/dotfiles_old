@@ -36,7 +36,7 @@
 (when (fboundp 'menu-bar-mode)
   (menu-bar-mode -1))
 
-(when window-system
+(when (fboundp 'scroll-bar-mode)
   (scroll-bar-mode -1))
 
 ;; try the following for unicode characters
@@ -117,7 +117,9 @@
 (when *is-win*
   (progn
     (w32-register-hot-key [s-r])
-    (w32-register-hot-key [s-p])))
+    (w32-register-hot-key [s-p])
+    (w32-register-hot-key [s-f])
+    ))
 
 
 
@@ -207,6 +209,19 @@
 
 (global-auto-revert-mode 1)
 
+(use-package server
+  :if *is-win*
+  :init
+  (server-mode 1)
+  :config
+  (unless (server-running-p)
+    (server-start)))
+
+(with-eval-after-load 'server
+  (when (equal window-system 'w32)
+    ;; Suppress error "directory  ~/.emacs.d/server is unsafe". It is needed
+    ;; needed for the server to start on Windows.
+    (defun server-ensure-safe-dir (dir) "Noop" t)))
 
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
@@ -415,7 +430,7 @@
   (ivy-extra-directories nil)
   (ivy-use-virtual-buffers t)
   (ivy-virtual-abbreviate 'abbreviate)
-  ;;(ivy-count-format "")
+  (ivy-count-format "(%d/%d) ")
   :init
   (ivy-mode)
   :bind
@@ -493,7 +508,9 @@
   :diminish (company-mode . "(c)")
   :commands company-mode
   :custom (company-minimum-prefix-length 2)
-  (company-global-modes '(not text-mode))
+  (company-global-modes '(not text-mode)
+                        )
+  (company-dabbrev-downcase nil)
     ;; set default `company-backends'
   (company-backends
         '((company-files
@@ -510,9 +527,8 @@
         company-echo-delay 0     ; remove annoying blinking
         company-tooltip-limit 10
         company-tooltip-flip-when-above t
-        company-dabbrev-downcase nil
+
         )
-  ;; (add-hook 'after-init-hook #'global-company-mode)
   :hook ((after-init . global-company-mode)
          (prog-mode . jl/prog-mode-hook))
   )
@@ -812,7 +828,6 @@
 )
 
 (general-define-key
- "s-x" 'counsel-M-x
  "C-x C-m" 'counsel-M-x
  "C-w" 'backward-kill-word
  "C-x C-k" 'kill-region
@@ -826,6 +841,10 @@
  "M-p" 'mark-end-of-sentence
  )
 
+(general-define-key
+ :keymaps 'prog-mode-map
+ "s-f" 'mark-defun
+ )
 
 ;;; open current file in explorer/finder
 (when *is-win*
@@ -955,8 +974,8 @@
   :custom
   (arm-lookup-browse-pdf-function 'arm-lookup-browse-pdf-sumatrapdf)
   :commands (arm-lookup)
-                                        ;:bind (:map asm-mode-map ("M-." . arm-lookup))
-  :bind (("M-." . arm-lookup))
+  :bind (:map asm-mode-map ("M-." . arm-lookup))
+  ;:bind (("M-." . arm-lookup))
   )
 
 
@@ -1057,6 +1076,8 @@
   :config
   )
 
+(use-package git-timemachine
+  :ensure t)
 
 (use-package magit-svn
   :ensure t
@@ -1115,6 +1136,25 @@
   :diminish ""
   :config (google-this-mode 1)
   )
+
+(use-package dumb-jump
+  :ensure t
+  :custom
+  (dumb-jump-selector 'ivy)
+  :init (add-to-list 'dumb-jump-language-file-exts '(:language "c++" :ext "tg" :agtype "cc" :rgtype "c"))
+  :bind (("M-g j" . dumb-jump-go)
+         ("M-g i" . dumb-jump-go-prompt)
+         ("M-g q" . dumb-jump-quick-look))
+  )
+
+(use-package cheatsheet
+  :ensure t
+  )
+
+(cheatsheet-add
+ :group 'General
+ :key "C-u C-SPC"
+ :description "Move to previous mark")
 
 (use-package bm
   :ensure t
