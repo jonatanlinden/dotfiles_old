@@ -42,21 +42,19 @@
 ;; try the following for unicode characters
 ;; (setq inhibit-compacting-font-caches t)
 
+;; List available fonts in *Messages* buffer
+;;(message
+;; (mapconcat (quote identity)
+;;            (sort (font-family-list) #'string-lessp) "\n"))
+
 ;; Default font
-(cond (*is-win* (set-face-attribute 'default nil :family "Consolas" :height 110))
-      (*is-mac* (set-face-attribute 'default nil :family "Menlo" :height 140))
-)
-
-
+(cond (*is-win* (set-frame-font "Consolas 11" nil t))
+      (*is-mac* (set-face-attribute 'default nil :family "Menlo" :height 140)))
 
 
 (when (memq window-system '(mac ns))
   (add-to-list 'default-frame-alist '(ns-appearance . light))
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
-
-
-
-
 
 
 ;; TRY: check if this prevents freezing during command evaluation
@@ -553,6 +551,7 @@
 (use-package expand-region
   :ensure t
   :bind*
+  ("C-=" . er/expand-region)
   ("H-0" . er/expand-region)
   ("C-," . er/mark-word)
   )
@@ -1011,6 +1010,8 @@
           ))
   )
 
+(setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
+
 (use-package ox-mediawiki
   :ensure t
   :after (org mediawiki)
@@ -1141,7 +1142,7 @@
   :ensure t
   :custom
   (dumb-jump-selector 'ivy)
-  :init (add-to-list 'dumb-jump-language-file-exts '(:language "c++" :ext "tg" :agtype "cc" :rgtype "c"))
+  :config (add-to-list 'dumb-jump-language-file-exts '(:language "c++" :ext "tg" :agtype "cc" :rgtype "c"))
   :bind (("M-g j" . dumb-jump-go)
          ("M-g i" . dumb-jump-go-prompt)
          ("M-g q" . dumb-jump-quick-look))
@@ -1155,6 +1156,17 @@
  :group 'General
  :key "C-u C-SPC"
  :description "Move to previous mark")
+
+(cheatsheet-add
+ :group 'Ivy-occur
+ :key "C-o"
+ :description "Open file at location from an ivy-occur buffer")
+
+(cheatsheet-add
+ :group 'General
+ :key "C-u 3 M-x mc/insert-numbers"
+ :description "Insert 3 at the first cursor, 4 at the second curser, etc."
+ )
 
 (use-package bm
   :ensure t
