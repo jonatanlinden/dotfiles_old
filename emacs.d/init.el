@@ -431,6 +431,8 @@
   (ivy-count-format "(%d/%d) ")
   :init
   (ivy-mode)
+  :config
+  (setcdr (assoc 'counsel-M-x ivy-initial-inputs-alist) "")
   :bind
   ("s-b" . ivy-switch-buffer)
   ("H-b" . ivy-switch-buffer)
@@ -783,6 +785,12 @@
 
 (add-hook 'asm-mode-hook #'jl/asm-mode-hook)
 
+(defun jl/c-mode-common-hook ()
+  (require 'smartparens-c)
+  )
+
+(add-hook 'c-mode-common-hook #'jl/c-mode-common-hook)
+
 ;; FIX prevent bug in smartparens
 ;; (setq sp-escape-quotes-after-insert nil)
 
@@ -1042,6 +1050,7 @@
   :if window-system
   :ensure t
   :commands (slack-start)
+  :bind ("<f12>" . slack-select-unread-rooms)
   :custom (slack-prefer-current-team t)
   )
 
@@ -1083,7 +1092,7 @@
 (use-package magit-svn
   :ensure t
   :diminish magit-svn-mode
-  :commands (magit-svn-mode turn-on-magit-svn)
+  :commands (magit-svn-mode)
   )
 
 
@@ -1163,9 +1172,21 @@
  :description "Open file at location from an ivy-occur buffer")
 
 (cheatsheet-add
+ :group 'Counsel
+ :key "M-o i"
+ :description "Insert current ivy/swiper/counsel match into the current buffer."
+ )
+
+(cheatsheet-add
  :group 'General
  :key "C-u 3 M-x mc/insert-numbers"
  :description "Insert 3 at the first cursor, 4 at the second curser, etc."
+ )
+
+(cheatsheet-add
+ :group 'Ruby
+ :key "C-c {"
+ :description "Ruby toggle block type"
  )
 
 (use-package bm
