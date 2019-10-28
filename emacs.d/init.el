@@ -429,10 +429,9 @@
   (ivy-use-virtual-buffers t)
   (ivy-virtual-abbreviate 'abbreviate)
   (ivy-count-format "(%d/%d) ")
+  (ivy-initial-inputs-alist nil)
   :init
   (ivy-mode)
-  :config
-  (setcdr (assoc 'counsel-M-x ivy-initial-inputs-alist) "")
   :bind
   ("s-b" . ivy-switch-buffer)
   ("H-b" . ivy-switch-buffer)
@@ -636,7 +635,7 @@
 
 (use-package flycheck-clang-tidy
   :if (executable-find "clang-tidy")
-  :custom (flycheck-clang-tidy-build-path "../../_build")
+  :custom (flycheck-clang-tidy-build-path "../../build")
   :after (flycheck)
   :ensure t
   :hook (c++-mode . flycheck-clang-tidy-setup)
@@ -846,6 +845,8 @@
  "C-x \\" 'align-regexp
  ;; mark-end-of-sentence is normally unassigned
  "M-p" 'mark-end-of-sentence
+ ;; rebind to zap-up-to-char instead of zap-to-char
+ "M-z" 'zap-up-to-char
  )
 
 (general-define-key
@@ -1174,7 +1175,7 @@
 (cheatsheet-add
  :group 'Counsel
  :key "M-o i"
- :description "Insert current ivy/swiper/counsel match into the current buffer."
+ :description "Insert current ivy/swiper/counsel match into the current buffer"
  )
 
 (cheatsheet-add
@@ -1188,6 +1189,32 @@
  :key "C-c {"
  :description "Ruby toggle block type"
  )
+
+(cheatsheet-add
+ :group 'VC
+ :key "a"
+ :description "Previous revision to line"
+ )
+
+(cheatsheet-add
+ :group 'VC
+ :key "l"
+ :description "Show commit info")
+
+(cheatsheet-add
+ :group 'Movement
+ :key "C-x v ]"
+ :description "diff-hl-next-chunk: Move to next modified hunk")
+
+(cheatsheet-add
+ :group 'Movement
+ :key "C-M-n"
+ :description "inside brackets, move to after closing bracket")
+
+(cheatsheet-add
+ :group 'Movement
+ :key "C-M-u"
+ :description "inside brackets, move to opening bracket (up in structure)")
 
 (use-package bm
   :ensure t
