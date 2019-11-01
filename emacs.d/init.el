@@ -1173,7 +1173,23 @@
  :description "Open file at location from an ivy-occur buffer")
 
 (cheatsheet-add
- :group 'Counsel
+ :group 'Swiper
+ :key "M-j"
+ :description "Insert word-at-point into the minibuffer. Extend by pressing multiple times")
+
+(cheatsheet-add
+ :group 'Swiper
+ :key "M-n"
+ :description "Insert symbol-at-point into the minibuffer")
+
+(cheatsheet-add
+ :group 'Swiper
+ :key "M-q"
+ :description "Query replace")
+
+
+(cheatsheet-add
+ :group 'Swiper
  :key "M-o i"
  :description "Insert current ivy/swiper/counsel match into the current buffer"
  )
