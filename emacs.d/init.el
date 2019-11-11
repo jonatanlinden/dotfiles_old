@@ -117,6 +117,7 @@
     (w32-register-hot-key [s-r])
     (w32-register-hot-key [s-p])
     (w32-register-hot-key [s-f])
+    (w32-register-hot-key [s-0])
     ))
 
 
@@ -472,7 +473,6 @@
    ("<f1> l" . counsel-find-library)
    ("C-c g" . counsel-git)
    ("C-c j" . counsel-git-grep)
-   ("C-c a" . counsel-ag)
    ("C-c r" . counsel-rg)
    ("C-x l" . counsel-locate)
    ("s-r" . counsel-recentf)
@@ -551,11 +551,15 @@
 ;  :bind* ("C-," . er/expand-region))
 (use-package expand-region
   :ensure t
-  :bind*
-  ("C-=" . er/expand-region)
+  :bind
   ("H-0" . er/expand-region)
+  ("H-§" . er/expand-region)
+  ("s-0" . er/expand-region)
   ("C-," . er/mark-word)
+  :config
+  (unbind-key "M-@" global-map)
   )
+
 
 (use-package change-inner
   :ensure t
@@ -786,6 +790,11 @@
 
 (defun jl/c-mode-common-hook ()
   (require 'smartparens-c)
+  )
+
+(use-package hide-ifdef-mode
+  :custom (hide-ifdef-shadow 't)
+  :hook c-mode-common
   )
 
 (add-hook 'c-mode-common-hook #'jl/c-mode-common-hook)
