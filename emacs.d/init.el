@@ -236,6 +236,11 @@
 (use-package bind-key                ;; if you use any :bind variant
   :ensure t)
 
+;; manage elpa keys
+(use-package gnu-elpa-keyring-update
+  :ensure t
+  )
+
 (use-package paradox
   :disabled
   :ensure t
@@ -269,6 +274,22 @@
   (sml/name-width 30)
   )
 
+(use-package which-func
+  :ensure nil
+  :config
+  ;; Show the current function name in the header line, not in mode-line
+  (let ((which-func '(which-func-mode ("" which-func-format " "))))
+    (setq-default mode-line-format (remove which-func mode-line-format))
+    (setq-default mode-line-misc-info (remove which-func mode-line-misc-info))
+    (setq-default header-line-format which-func))
+  (which-function-mode)
+)
+
+;; (setq mode-line-misc-info
+            ;; We remove Which Function Mode from the mode line, because it's mostly
+            ;; invisible here anyway.
+            ;;(assq-delete-all 'which-func-mode mode-line-misc-info))
+
 (use-package paren
   :config
   (show-paren-mode +1))
@@ -286,7 +307,9 @@
   (smartparens-global-mode t)
   (sp-use-paredit-bindings)
   (show-smartparens-global-mode +1)
-  :diminish (smartparens-mode .  "()"))
+  ;; :diminish (smartparens-mode .  "()")
+  :diminish smartparens-mode
+  )
 
 (use-package abbrev
   :diminish ""
@@ -344,7 +367,7 @@
   :ensure t
   :bind (("C-c o" . crux-open-with)
          ("C-c n" . crux-cleanup-buffer-or-region)
-         ("C-c f" . crux-recentf-find-file)
+         ;;("C-c f" . crux-recentf-find-file)
          ("C-M-z" . crux-indent-defun)
          ("C-c u" . crux-view-url)
          ("C-c e" . crux-eval-and-replace)
@@ -372,6 +395,25 @@
   :ensure t
   :hook (prog-mode . rainbow-delimiters-mode))
 
+(use-package highlight-parentheses
+  :ensure t
+  :diminish highlight-parentheses-mode
+  :init (setq hl-paren-highlight-adjacent t)
+  :hook ((after-init . global-highlight-parentheses-mode)))
+
+
+(use-package parinfer
+  :ensure t
+  :bind (("C-." . parinfer-toggle-mode))
+  :init (setq parinfer-extensions
+              '(defaults       ; should be included.
+                 pretty-parens  ; different paren styles for different modes.
+                 ;; evil           ; If you use Evil.
+                 ;; lispy          ; If you use Lispy. With this extension, you should install Lispy and do not enable lispy-mode directly.
+                 ;; paredit        ; Introduce some paredit commands.
+                 smart-tab      ; C-b & C-f jump positions and smart shift with tab & S-tab.
+                 smart-yank))   ; Yank behavior depend on mode.
+  :hook lisp-modes-hooks)
 
 (use-package anzu
   :ensure t
@@ -409,22 +451,22 @@
 (use-package flx
   :ensure t)
 
-(use-package smex
+(use-package amx
   :ensure t
-  :init
-  (setq-default smex-history-length 32
-                smex-save-file (expand-file-name "smex-items" jonatan-savefile-dir)))
+  :init (setq-default amx-save-file (expand-file-name "smex-items" jonatan-savefile-dir))
+  :bind (("<remap> <execute-extended-command>" . amx)))
 
 
 ;; use flx matching instead of the default
-  ;; see https://oremacs.com/2016/01/06/ivy-flx/ for details
-  ;;(setq ivy-re-builders-alist
-        ;;'((t . ivy--regex-fuzzy)))
-  ;(setq ivy-initial-inputs-alist nil)
-  ;(setq enable-recursive-minibuffers t)
+;; see https://oremacs.com/2016/01/06/ivy-flx/ for details
+;;(setq ivy-re-builders-alist
+;;'((t . ivy--regex-fuzzy)))
+                                        ;(setq ivy-initial-inputs-alist nil)
+                                        ;(setq enable-recursive-minibuffers t)
 
 (use-package ivy
   :ensure t
+  :diminish
   :custom
   (ivy-extra-directories nil)
   (ivy-use-virtual-buffers t)
@@ -485,6 +527,7 @@
 
 ;; temporarily highlight changes from yanking, etc
 (use-package volatile-highlights
+  :diminish
   :ensure t
   :config
   (volatile-highlights-mode +1))
@@ -504,7 +547,8 @@
 
 (use-package company
   :ensure t
-  :diminish (company-mode . "(c)")
+  ;; :diminish (company-mode . "(c)")
+  :diminish company-mode
   :commands company-mode
   :custom (company-minimum-prefix-length 2)
   (company-global-modes '(not text-mode)
@@ -573,6 +617,7 @@
 
 (use-package symbol-overlay
   :ensure t
+  :diminish symbol-overlay-mode
   :custom
   (symbol-overlay-idle-time 1.5)
   :bind
@@ -725,6 +770,10 @@
   :hook (web-mode . jl/web-mode-hook)
   )
 
+;; TODO: Evaluate, use local binaries from, e.g., yarn, npm
+(use-package find-local-executable
+  :disabled t
+  )
 
 (use-package json-mode
   :ensure t
@@ -741,7 +790,8 @@
   ;; Highlight changes to the current file in the fringe
   (global-diff-hl-mode)
   ;; Highlight changed files in the fringe of Dired
-  :hook (dired-mode . diff-hl-dired-mode)
+  :hook ((dired-mode . diff-hl-dired-mode)
+         (magit-post-refresh . diff-hl-magit-post-refresh))
   )
 
 (use-package hl-todo
@@ -792,7 +842,8 @@
   (require 'smartparens-c)
   )
 
-(use-package hide-ifdef-mode
+(use-package hideif
+  :diminish hide-ifdef-mode
   :custom (hide-ifdef-shadow 't)
   :hook c-mode-common
   )
@@ -829,6 +880,12 @@
   :hook irony-mode
   )
 
+(use-package cc-mode
+  :defer t
+  :config
+  (setq c-default-style "k&r"
+        c-basic-offset 2)
+  )
 
 (use-package c++-mode
   :after smartparens
@@ -898,24 +955,35 @@
 
 (use-package ibuffer
   :bind ("C-x C-b" . ibuffer)
-  :init (setq ibuffer-saved-filter-groups
-              '(("home"
-	               ("Org" (or (mode . org-mode)
-		                        (filename . "OrgMode")))
-                 ("Subversion" (name . "\*svn"))
-	               ("Magit" (name . "\*magit"))
-   	             ("Help" (or (name . "\*Help\*")
-		                         (name . "\*Apropos\*")
-		                         (name . "\*info\*")))))
+  :config (setq ibuffer-saved-filter-groups
+                '(("Default"
+                   ("Dired" (mode . dired-mode))
+                   ("Org" (or (mode . org-mode)
+                              (filename . "OrgMode")))
+                   ("Subversion" (name . "^\\*svn"))
+                   ("Magit" (name . "^magit"))
+                   ("Help" (or (name . "^\\*Help\\*")
+                               (name . "^\\*Apropos\\*")
+                               (name . "^\\*info\\*")))
+                   ("Emacs" (or
+                             (name . "^\\*dashboard\\*$"  )
+                             (name . "^\\*scratch\\*$"    )
+                             (name . "^\\*Messages\\*$"   )
+                             (name . "^\\*Backtrace\\*$"  )
+                             (name . "^\\*Compile-Log\\*$")
+                             (name . "^\\*Flycheck"       )
+                             ))
+                   ))
 
-              ibuffer-show-empty-filter-groups t
+              ibuffer-show-empty-filter-groups nil
+              ibuffer-default-sorting-mode 'filename/process
               )
-  :hook jl/ibuffer-mode-hook
+  :hook ((ibuffer-mode . (lambda () (ibuffer-switch-to-saved-filter-groups "Default"))))
   )
 
-(defun jl/ibuffer-mode-hook ()
-  (ibuffer-auto-mode 1)
-	(ibuffer-switch-to-saved-filter-groups "home"))
+(use-package ibuffer-vc
+  :ensure t
+  )
 
 ;; show the cursor when moving after big movements in the window
 (use-package beacon
@@ -937,6 +1005,7 @@
   :ensure t
   :custom
   (ws-butler-keep-whitespace-before-point nil)
+  :diminish ""
   :config
   (ws-butler-global-mode)
 )
@@ -975,11 +1044,12 @@
                         )
   )
 
-
-
+(use-package eldoc
+  :diminish eldoc-mode)
 
 (use-package yasnippet
   :ensure t
+  :diminish yas-minor-mode
   :commands (yas-minor-mode)
   :hook (prog-mode . yas-minor-mode)
   :config (yas-reload-all)
@@ -1167,6 +1237,38 @@
          ("M-g q" . dumb-jump-quick-look))
   )
 
+(use-package point-history
+  :hook 'after-init-hook
+  :bind (("C-c C-/" . point-history-show))
+  :init (setq point-history-ignore-buffer "^ \\*Minibuf\\|^ \\*point-history-show*"))
+
+(use-package bm
+  :ensure t
+  :custom (bm-restore-repository-on-load t)
+  (bm-highlight-style 'bm-highlight-only-fringe)
+  :init
+  ;; restore on load (even before you require bm)
+  :hook ((after-init . bm-repository-load)
+         (kill-buffer . bm-buffer-save)
+         (after-save . bm-buffer-save)
+         (vc-before-checkin . bm-buffer-save)
+         (find-file . bm-buffer-restore)
+         (after-revert . bm-buffer-restore)
+         (kill-emacs . (lambda ()
+                         (bm-buffer-save-all)
+                         (bm-repository-save)
+                         ))
+         )
+  :bind (("<f2>" . bm-next)
+         ("S-<f2>" . bm-previous)
+         ("C-<f2>" . bm-toggle))
+  )
+
+
+;;; in bat mode, treat _ as a word constitutent
+(add-hook 'bat-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
+
+
 (use-package cheatsheet
   :ensure t
   )
@@ -1241,27 +1343,6 @@
  :key "C-M-u"
  :description "inside brackets, move to opening bracket (up in structure)")
 
-(use-package bm
-  :ensure t
-  :custom (bm-restore-repository-on-load t)
-  (bm-highlight-style 'bm-highlight-only-fringe)
-  :init
-  ;; restore on load (even before you require bm)
-  :hook ((after-init . bm-repository-load)
-         (kill-buffer . bm-buffer-save)
-         (after-save . bm-buffer-save)
-         (vc-before-checkin . bm-buffer-save)
-         (find-file . bm-buffer-restore)
-         (after-revert . bm-buffer-restore)
-         (kill-emacs . (lambda ()
-                         (bm-buffer-save-all)
-                         (bm-repository-save)
-                         ))
-         )
-  :bind (("<f2>" . bm-next)
-         ("S-<f2>" . bm-previous)
-         ("C-<f2>" . bm-toggle))
-  )
 
 (provide 'init)
 ;;; init.el ends here
