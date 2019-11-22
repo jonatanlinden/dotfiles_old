@@ -2,6 +2,8 @@
 
 (defvar before-init-time (current-time) "Time when init.el was started")
 
+(message "Starting emacs %s" (current-time-string))
+
 ;; reduce the frequency of garbage collection by making it happen on
 ;; each 50MB of allocated data (the default is on every 0.76MB)
 (setq gc-cons-threshold 50000000)
@@ -683,6 +685,17 @@
     :mode (("\\.md\\'" . gfm-mode)
            ("\\.markdown\\'" . gfm-mode)))
 
+(use-package css-mode
+  :custom (css-indent-offset 2)
+  )
+
+(use-package com-css-sort
+  :ensure t
+  :after css-mode
+  :custom (com-css-sort-sort-type 'alphabetic-sort)
+  :bind (:map css-mode-map
+              ("C-c s" . com-css-sort-attributes-block))
+  )
 
 (defun jl/web-mode-hook ()
   "Hooks for Web mode."
@@ -693,6 +706,7 @@
 
 (use-package web-mode
   :ensure t
+  :custom (web-mode-css-indent-offset 2)
   :config
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
   (setq web-mode-ac-sources-alist
@@ -1117,6 +1131,7 @@
   )
 
 (use-package bm
+  :disabled
   :ensure t
   :custom (bm-restore-repository-on-load t)
   (bm-highlight-style 'bm-highlight-only-fringe)
