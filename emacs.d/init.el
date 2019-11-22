@@ -38,27 +38,25 @@
 (when (fboundp 'menu-bar-mode)
   (menu-bar-mode -1))
 
-(when window-system
+(when (fboundp 'scroll-bar-mode)
   (scroll-bar-mode -1))
 
 ;; try the following for unicode characters
 ;; (setq inhibit-compacting-font-caches t)
 
+;; List available fonts in *Messages* buffer
+;;(message
+;; (mapconcat (quote identity)
+;;            (sort (font-family-list) #'string-lessp) "\n"))
+
 ;; Default font
-(cond (*is-win* (set-face-attribute 'default nil :family "Consolas" :height 110))
-      (*is-mac* (set-face-attribute 'default nil :family "Menlo" :height 140))
-)
-
-
+(cond (*is-win* (set-frame-font "Consolas 11" nil t))
+      (*is-mac* (set-face-attribute 'default nil :family "Menlo" :height 140)))
 
 
 (when (memq window-system '(mac ns))
   (add-to-list 'default-frame-alist '(ns-appearance . light))
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
-
-
-
-
 
 
 ;; TRY: check if this prevents freezing during command evaluation
@@ -119,7 +117,10 @@
 (when *is-win*
   (progn
     (w32-register-hot-key [s-r])
-    (w32-register-hot-key [s-p])))
+    (w32-register-hot-key [s-p])
+    (w32-register-hot-key [s-f])
+    (w32-register-hot-key [s-0])
+    ))
 
 
 
@@ -209,6 +210,19 @@
 
 (global-auto-revert-mode 1)
 
+(use-package server
+  :if *is-win*
+  :init
+  (server-mode 1)
+  :config
+  (unless (server-running-p)
+    (server-start)))
+
+(with-eval-after-load 'server
+  (when (equal window-system 'w32)
+    ;; Suppress error "directory  ~/.emacs.d/server is unsafe". It is needed
+    ;; needed for the server to start on Windows.
+    (defun server-ensure-safe-dir (dir) "Noop" t)))
 
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
@@ -223,6 +237,11 @@
 
 (use-package bind-key                ;; if you use any :bind variant
   :ensure t)
+
+;; manage elpa keys
+(use-package gnu-elpa-keyring-update
+  :ensure t
+  )
 
 (use-package paradox
   :disabled
@@ -257,6 +276,22 @@
   (sml/name-width 30)
   )
 
+(use-package which-func
+  :ensure nil
+  :config
+  ;; Show the current function name in the header line, not in mode-line
+  (let ((which-func '(which-func-mode ("" which-func-format " "))))
+    (setq-default mode-line-format (remove which-func mode-line-format))
+    (setq-default mode-line-misc-info (remove which-func mode-line-misc-info))
+    (setq-default header-line-format which-func))
+  (which-function-mode)
+)
+
+;; (setq mode-line-misc-info
+            ;; We remove Which Function Mode from the mode line, because it's mostly
+            ;; invisible here anyway.
+            ;;(assq-delete-all 'which-func-mode mode-line-misc-info))
+
 (use-package paren
   :config
   (show-paren-mode +1))
@@ -274,7 +309,9 @@
   (smartparens-global-mode t)
   (sp-use-paredit-bindings)
   (show-smartparens-global-mode +1)
-  :diminish (smartparens-mode .  "()"))
+  ;; :diminish (smartparens-mode .  "()")
+  :diminish smartparens-mode
+  )
 
 (use-package abbrev
   :diminish ""
@@ -332,7 +369,7 @@
   :ensure t
   :bind (("C-c o" . crux-open-with)
          ("C-c n" . crux-cleanup-buffer-or-region)
-         ("C-c f" . crux-recentf-find-file)
+         ;;("C-c f" . crux-recentf-find-file)
          ("C-M-z" . crux-indent-defun)
          ("C-c u" . crux-view-url)
          ("C-c e" . crux-eval-and-replace)
@@ -360,6 +397,25 @@
   :ensure t
   :hook (prog-mode . rainbow-delimiters-mode))
 
+(use-package highlight-parentheses
+  :ensure t
+  :diminish highlight-parentheses-mode
+  :init (setq hl-paren-highlight-adjacent t)
+  :hook ((after-init . global-highlight-parentheses-mode)))
+
+
+(use-package parinfer
+  :ensure t
+  :bind (("C-." . parinfer-toggle-mode))
+  :init (setq parinfer-extensions
+              '(defaults       ; should be included.
+                 pretty-parens  ; different paren styles for different modes.
+                 ;; evil           ; If you use Evil.
+                 ;; lispy          ; If you use Lispy. With this extension, you should install Lispy and do not enable lispy-mode directly.
+                 ;; paredit        ; Introduce some paredit commands.
+                 smart-tab      ; C-b & C-f jump positions and smart shift with tab & S-tab.
+                 smart-yank))   ; Yank behavior depend on mode.
+  :hook lisp-modes-hooks)
 
 (use-package anzu
   :ensure t
@@ -397,27 +453,28 @@
 (use-package flx
   :ensure t)
 
-(use-package smex
+(use-package amx
   :ensure t
-  :init
-  (setq-default smex-history-length 32
-                smex-save-file (expand-file-name "smex-items" jonatan-savefile-dir)))
+  :init (setq-default amx-save-file (expand-file-name "smex-items" jonatan-savefile-dir))
+  :bind (("<remap> <execute-extended-command>" . amx)))
 
 
 ;; use flx matching instead of the default
-  ;; see https://oremacs.com/2016/01/06/ivy-flx/ for details
-  ;;(setq ivy-re-builders-alist
-        ;;'((t . ivy--regex-fuzzy)))
-  ;(setq ivy-initial-inputs-alist nil)
-  ;(setq enable-recursive-minibuffers t)
+;; see https://oremacs.com/2016/01/06/ivy-flx/ for details
+;;(setq ivy-re-builders-alist
+;;'((t . ivy--regex-fuzzy)))
+                                        ;(setq ivy-initial-inputs-alist nil)
+                                        ;(setq enable-recursive-minibuffers t)
 
 (use-package ivy
   :ensure t
+  :diminish
   :custom
   (ivy-extra-directories nil)
   (ivy-use-virtual-buffers t)
   (ivy-virtual-abbreviate 'abbreviate)
-  ;;(ivy-count-format "")
+  (ivy-count-format "(%d/%d) ")
+  (ivy-initial-inputs-alist nil)
   :init
   (ivy-mode)
   :bind
@@ -460,7 +517,6 @@
    ("<f1> l" . counsel-find-library)
    ("C-c g" . counsel-git)
    ("C-c j" . counsel-git-grep)
-   ("C-c a" . counsel-ag)
    ("C-c r" . counsel-rg)
    ("C-x l" . counsel-locate)
    ("s-r" . counsel-recentf)
@@ -473,6 +529,7 @@
 
 ;; temporarily highlight changes from yanking, etc
 (use-package volatile-highlights
+  :diminish
   :ensure t
   :config
   (volatile-highlights-mode +1))
@@ -492,10 +549,13 @@
 
 (use-package company
   :ensure t
-  :diminish (company-mode . "(c)")
+  ;; :diminish (company-mode . "(c)")
+  :diminish company-mode
   :commands company-mode
   :custom (company-minimum-prefix-length 2)
-  (company-global-modes '(not text-mode))
+  (company-global-modes '(not text-mode)
+                        )
+  (company-dabbrev-downcase nil)
     ;; set default `company-backends'
   (company-backends
         '((company-files
@@ -512,9 +572,8 @@
         company-echo-delay 0     ; remove annoying blinking
         company-tooltip-limit 10
         company-tooltip-flip-when-above t
-        company-dabbrev-downcase nil
+
         )
-  ;; (add-hook 'after-init-hook #'global-company-mode)
   :hook ((after-init . global-company-mode)
          (prog-mode . jl/prog-mode-hook))
   )
@@ -538,10 +597,15 @@
 ;  :bind* ("C-," . er/expand-region))
 (use-package expand-region
   :ensure t
-  :bind*
+  :bind
   ("H-0" . er/expand-region)
+  ("H-§" . er/expand-region)
+  ("s-0" . er/expand-region)
   ("C-," . er/mark-word)
+  :config
+  (unbind-key "M-@" global-map)
   )
+
 
 (use-package change-inner
   :ensure t
@@ -555,6 +619,7 @@
 
 (use-package symbol-overlay
   :ensure t
+  :diminish symbol-overlay-mode
   :custom
   (symbol-overlay-idle-time 1.5)
   :bind
@@ -621,7 +686,7 @@
 
 (use-package flycheck-clang-tidy
   :if (executable-find "clang-tidy")
-  :custom (flycheck-clang-tidy-build-path "../../_build")
+  :custom (flycheck-clang-tidy-build-path "../../build")
   :after (flycheck)
   :ensure t
   :hook (c++-mode . flycheck-clang-tidy-setup)
@@ -719,6 +784,10 @@
   :hook (web-mode . jl/web-mode-hook)
   )
 
+;; TODO: Evaluate, use local binaries from, e.g., yarn, npm
+(use-package find-local-executable
+  :disabled t
+  )
 
 (use-package json-mode
   :ensure t
@@ -735,7 +804,8 @@
   ;; Highlight changes to the current file in the fringe
   (global-diff-hl-mode)
   ;; Highlight changed files in the fringe of Dired
-  :hook (dired-mode . diff-hl-dired-mode)
+  :hook ((dired-mode . diff-hl-dired-mode)
+         (magit-post-refresh . diff-hl-magit-post-refresh))
   )
 
 (use-package hl-todo
@@ -782,6 +852,18 @@
 
 (add-hook 'asm-mode-hook #'jl/asm-mode-hook)
 
+(defun jl/c-mode-common-hook ()
+  (require 'smartparens-c)
+  )
+
+(use-package hideif
+  :diminish hide-ifdef-mode
+  :custom (hide-ifdef-shadow 't)
+  :hook c-mode-common
+  )
+
+(add-hook 'c-mode-common-hook #'jl/c-mode-common-hook)
+
 ;; FIX prevent bug in smartparens
 ;; (setq sp-escape-quotes-after-insert nil)
 
@@ -812,6 +894,12 @@
   :hook irony-mode
   )
 
+(use-package cc-mode
+  :defer t
+  :config
+  (setq c-default-style "k&r"
+        c-basic-offset 2)
+  )
 
 (use-package c++-mode
   :after smartparens
@@ -826,7 +914,6 @@
 )
 
 (general-define-key
- "s-x" 'counsel-M-x
  "C-x C-m" 'counsel-M-x
  "C-w" 'backward-kill-word
  "C-x C-k" 'kill-region
@@ -838,8 +925,14 @@
  "C-x \\" 'align-regexp
  ;; mark-end-of-sentence is normally unassigned
  "M-p" 'mark-end-of-sentence
+ ;; rebind to zap-up-to-char instead of zap-to-char
+ "M-z" 'zap-up-to-char
  )
 
+(general-define-key
+ :keymaps 'prog-mode-map
+ "s-f" 'mark-defun
+ )
 
 ;;; open current file in explorer/finder
 (when *is-win*
@@ -876,24 +969,35 @@
 
 (use-package ibuffer
   :bind ("C-x C-b" . ibuffer)
-  :init (setq ibuffer-saved-filter-groups
-              '(("home"
-	               ("Org" (or (mode . org-mode)
-		                        (filename . "OrgMode")))
-                 ("Subversion" (name . "\*svn"))
-	               ("Magit" (name . "\*magit"))
-   	             ("Help" (or (name . "\*Help\*")
-		                         (name . "\*Apropos\*")
-		                         (name . "\*info\*")))))
+  :config (setq ibuffer-saved-filter-groups
+                '(("Default"
+                   ("Dired" (mode . dired-mode))
+                   ("Org" (or (mode . org-mode)
+                              (filename . "OrgMode")))
+                   ("Subversion" (name . "^\\*svn"))
+                   ("Magit" (name . "^magit"))
+                   ("Help" (or (name . "^\\*Help\\*")
+                               (name . "^\\*Apropos\\*")
+                               (name . "^\\*info\\*")))
+                   ("Emacs" (or
+                             (name . "^\\*dashboard\\*$"  )
+                             (name . "^\\*scratch\\*$"    )
+                             (name . "^\\*Messages\\*$"   )
+                             (name . "^\\*Backtrace\\*$"  )
+                             (name . "^\\*Compile-Log\\*$")
+                             (name . "^\\*Flycheck"       )
+                             ))
+                   ))
 
-              ibuffer-show-empty-filter-groups t
+              ibuffer-show-empty-filter-groups nil
+              ibuffer-default-sorting-mode 'filename/process
               )
-  :hook jl/ibuffer-mode-hook
+  :hook ((ibuffer-mode . (lambda () (ibuffer-switch-to-saved-filter-groups "Default"))))
   )
 
-(defun jl/ibuffer-mode-hook ()
-  (ibuffer-auto-mode 1)
-	(ibuffer-switch-to-saved-filter-groups "home"))
+(use-package ibuffer-vc
+  :ensure t
+  )
 
 ;; show the cursor when moving after big movements in the window
 (use-package beacon
@@ -915,6 +1019,7 @@
   :ensure t
   :custom
   (ws-butler-keep-whitespace-before-point nil)
+  :diminish ""
   :config
   (ws-butler-global-mode)
 )
@@ -953,11 +1058,12 @@
                         )
   )
 
-
-
+(use-package eldoc
+  :diminish eldoc-mode)
 
 (use-package yasnippet
   :ensure t
+  :diminish yas-minor-mode
   :commands (yas-minor-mode)
   :hook (prog-mode . yas-minor-mode)
   :config (yas-reload-all)
@@ -969,8 +1075,8 @@
   :custom
   (arm-lookup-browse-pdf-function 'arm-lookup-browse-pdf-sumatrapdf)
   :commands (arm-lookup)
-                                        ;:bind (:map asm-mode-map ("M-." . arm-lookup))
-  :bind (("M-." . arm-lookup))
+  :bind (:map asm-mode-map ("M-." . arm-lookup))
+  ;:bind (("M-." . arm-lookup))
   )
 
 
@@ -1006,6 +1112,8 @@
           ))
   )
 
+(setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
+
 (use-package ox-mediawiki
   :ensure t
   :after (org mediawiki)
@@ -1036,6 +1144,7 @@
   :if window-system
   :ensure t
   :commands (slack-start)
+  :bind ("<f12>" . slack-select-unread-rooms)
   :custom (slack-prefer-current-team t)
   )
 
@@ -1071,11 +1180,13 @@
   :config
   )
 
+(use-package git-timemachine
+  :ensure t)
 
 (use-package magit-svn
   :ensure t
   :diminish magit-svn-mode
-  :commands (magit-svn-mode turn-on-magit-svn)
+  :commands (magit-svn-mode)
   )
 
 
@@ -1130,6 +1241,21 @@
   :config (google-this-mode 1)
   )
 
+(use-package dumb-jump
+  :ensure t
+  :custom
+  (dumb-jump-selector 'ivy)
+  :config (add-to-list 'dumb-jump-language-file-exts '(:language "c++" :ext "tg" :agtype "cc" :rgtype "c"))
+  :bind (("M-g j" . dumb-jump-go)
+         ("M-g i" . dumb-jump-go-prompt)
+         ("M-g q" . dumb-jump-quick-look))
+  )
+
+(use-package point-history
+  :hook 'after-init-hook
+  :bind (("C-c C-/" . point-history-show))
+  :init (setq point-history-ignore-buffer "^ \\*Minibuf\\|^ \\*point-history-show*"))
+
 (use-package bm
   :disabled
   :ensure t
@@ -1152,6 +1278,86 @@
          ("S-<f2>" . bm-previous)
          ("C-<f2>" . bm-toggle))
   )
+
+
+;;; in bat mode, treat _ as a word constitutent
+(add-hook 'bat-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
+
+
+(use-package cheatsheet
+  :ensure t
+  )
+
+(cheatsheet-add
+ :group 'General
+ :key "C-u C-SPC"
+ :description "Move to previous mark")
+
+(cheatsheet-add
+ :group 'Ivy-occur
+ :key "C-o"
+ :description "Open file at location from an ivy-occur buffer")
+
+(cheatsheet-add
+ :group 'Swiper
+ :key "M-j"
+ :description "Insert word-at-point into the minibuffer. Extend by pressing multiple times")
+
+(cheatsheet-add
+ :group 'Swiper
+ :key "M-n"
+ :description "Insert symbol-at-point into the minibuffer")
+
+(cheatsheet-add
+ :group 'Swiper
+ :key "M-q"
+ :description "Query replace")
+
+
+(cheatsheet-add
+ :group 'Swiper
+ :key "M-o i"
+ :description "Insert current ivy/swiper/counsel match into the current buffer"
+ )
+
+(cheatsheet-add
+ :group 'General
+ :key "C-u 3 M-x mc/insert-numbers"
+ :description "Insert 3 at the first cursor, 4 at the second curser, etc."
+ )
+
+(cheatsheet-add
+ :group 'Ruby
+ :key "C-c {"
+ :description "Ruby toggle block type"
+ )
+
+(cheatsheet-add
+ :group 'VC
+ :key "a"
+ :description "Previous revision to line"
+ )
+
+(cheatsheet-add
+ :group 'VC
+ :key "l"
+ :description "Show commit info")
+
+(cheatsheet-add
+ :group 'Movement
+ :key "C-x v ]"
+ :description "diff-hl-next-chunk: Move to next modified hunk")
+
+(cheatsheet-add
+ :group 'Movement
+ :key "C-M-n"
+ :description "inside brackets, move to after closing bracket")
+
+(cheatsheet-add
+ :group 'Movement
+ :key "C-M-u"
+ :description "inside brackets, move to opening bracket (up in structure)")
+
 
 (provide 'init)
 ;;; init.el ends here
