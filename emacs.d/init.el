@@ -535,6 +535,13 @@
   (volatile-highlights-mode +1))
 
 
+(use-package fd-dired
+  :ensure t
+  )
+
+;;(use-package counsel-fd
+;;  :ensure t)
+
 (use-package dired
   :custom
   ;; always delete and copy recursively
@@ -859,7 +866,7 @@
 (use-package hideif
   :diminish hide-ifdef-mode
   :custom (hide-ifdef-shadow 't)
-  :hook c-mode-common
+  :hook (c-mode-common . hide-ifdef-mode)
   )
 
 (add-hook 'c-mode-common-hook #'jl/c-mode-common-hook)
@@ -1283,6 +1290,33 @@
 ;;; in bat mode, treat _ as a word constitutent
 (add-hook 'bat-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
 
+(windmove-default-keybindings 'control)
+;; numbered window shortcuts
+(use-package winum
+  :ensure t
+  :config
+  (winum-mode))
+
+(use-package treemacs
+  :ensure t
+  :defer t
+  :custom
+  (treemacs-python-executable "c:/Python38/python.exe")
+  (treemacs-follow-mode nil)
+  :commands (treemacs-mode)
+  :custom (treemacs-no-png-images t)
+  :init
+  (with-eval-after-load 'winum
+    (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+  )
+
+(use-package treemacs-projectile
+  :after treemacs projectile
+  :ensure t)
+
+(use-package treemacs-magit
+  :after treemacs magit
+  :ensure t)
 
 (use-package cheatsheet
   :ensure t
