@@ -69,6 +69,14 @@
 ;;(add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
 ;;(add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
 
+(defconst jonatan-savefile-dir (expand-file-name "savefile" user-emacs-directory))
+(defconst jonatan-personal-dir (expand-file-name "personal" user-emacs-directory))
+
+(defconst jonatan-personal-preload (expand-file-name "personal/preload.el" user-emacs-directory))
+
+(when (file-exists-p jonatan-personal-preload)
+  (load jonatan-personal-preload))
+
 (require 'package)
 
 (add-to-list 'package-archives
@@ -80,8 +88,6 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
-(defconst jonatan-savefile-dir (expand-file-name "savefile" user-emacs-directory))
-(defconst jonatan-personal-dir (expand-file-name "personal" user-emacs-directory))
 
 ;; create the savefile dir if it doesn't exist
 (unless (file-exists-p jonatan-savefile-dir)
@@ -535,9 +541,9 @@
   (volatile-highlights-mode +1))
 
 
-(use-package fd-dired
-  :ensure t
-  )
+;; (use-package fd-dired
+;;   :ensure t
+;; )
 
 ;;(use-package counsel-fd
 ;;  :ensure t)
@@ -1112,6 +1118,7 @@
   (org-directory "d:/work/notes")
   :bind (("C-c c" . org-capture))
   :config
+  (setq org-id-track-globally t)
   (setq org-capture-templates
         '(("t" "Todo [inbox]" entry
            (file+headline "d:/work/notes/todo.org" "Tasks")
