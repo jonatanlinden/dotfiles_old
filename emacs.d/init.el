@@ -532,6 +532,8 @@
    ("C-r" . counsel-minibuffer-history))
   )
 
+;; TODO: use https://github.com/yqrashawn/counsel-fd.git
+;; after having straight.el
 
 ;; temporarily highlight changes from yanking, etc
 (use-package volatile-highlights
@@ -695,6 +697,55 @@
   (flycheck-check-syntax-automatically '(save))
   (flycheck-mode-line-prefix "FC")
   :init (global-flycheck-mode t)
+  )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; LANGUAGES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package lsp-mode
+  :ensure t
+  :custom (lsp-prefer-flymake nil)
+  :commands lsp
+  :hook ruby-mode)
+
+(use-package company-lsp
+  :ensure t
+  :after (company lsp-mode)
+  :commands company-lsp
+  :custom
+  (company-lsp-async t)
+  (company-lsp-enable-recompletion t)
+  (company-transformers nil)
+  (company-lsp-enable-snippet t)
+  (company-lsp-cache-candidates nil)
+  :init
+  (with-eval-after-load 'company-mode
+    (general-pushnew
+     '(company-lsp
+       company-files
+       company-dabbrev-code
+;       company-gtags
+       ;company-etags
+       company-keywords
+       :with company-yasnippet)
+     company-backends))
+  )
+
+
+;; lsp-ui: This contains all the higher level UI modules of lsp-mode, like flycheck support and code lenses.
+;; https://github.com/emacs-lsp/lsp-ui
+(use-package lsp-ui
+  :ensure t
+  :custom
+  (lsp-ui-sideline-enable nil)
+  (lsp-ui-doc-enable nil)
+  (lsp-ui-flycheck-enable t)
+  (lsp-ui-imenu-enable t)
+  (lsp-ui-sideline-ignore-duplicate t)
+  :after (lsp)
+  :config
+  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
   )
 
 (use-package flycheck-clang-tidy
@@ -1190,8 +1241,9 @@
 
 (use-package magit
   :ensure t
-  :bind (("C-x g" . magit-status))
-  :config
+  :bind (("C-x g" . magit-status)
+         ("M-g l" . magit-list-repositories)
+         )
   )
 
 (use-package git-timemachine
