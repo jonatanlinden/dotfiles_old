@@ -249,12 +249,6 @@
   :ensure t
   )
 
-(use-package paradox
-  :disabled
-  :ensure t
-  :config  (paradox-enable)
-)
-
 (use-package exec-path-from-shell
   :if (memq window-system '(mac ns x))
   :ensure t
@@ -521,7 +515,7 @@
    ("<f1> f" . counsel-describe-function)
    ("<f1> v" . counsel-describe-variable)
    ("<f1> l" . counsel-find-library)
-   ("C-c g" . counsel-git)
+   ;;("C-c g" . counsel-git)
    ("C-c j" . counsel-git-grep)
    ("C-c r" . counsel-rg)
    ("C-x l" . counsel-locate)
@@ -864,6 +858,8 @@
 ;; Show changes in fringe
 (use-package diff-hl
   :ensure t
+  :bind (("C-c g n" . diff-hl-next-hunk)
+         ("C-c g p" . diff-hl-previous-hunk))
   :init
   ;; Highlight changes to the current file in the fringe
   (global-diff-hl-mode)
@@ -949,8 +945,7 @@
   :after irony
   :ensure t
   :hook (irony-mode . (lambda ()
-                        (add-to-list (make-local-variable 'company-backends) 'company-irony)))
-  )
+                        (add-to-list (make-local-variable 'company-backends) 'company-irony))))
 
 (use-package irony-eldoc
   :after irony
@@ -988,10 +983,9 @@
  ;; align code
  "C-x \\" 'align-regexp
  ;; mark-end-of-sentence is normally unassigned
- "M-p" 'mark-end-of-sentence
+ "M-h" 'mark-end-of-sentence
  ;; rebind to zap-up-to-char instead of zap-to-char
- "M-z" 'zap-up-to-char
- )
+ "M-z" 'zap-up-to-char)
 
 (general-define-key
  :keymaps 'prog-mode-map
@@ -1039,7 +1033,8 @@
                    ("Org" (or (mode . org-mode)
                               (filename . "OrgMode")))
                    ("Subversion" (name . "^\\*svn"))
-                   ("Magit" (name . "^magit"))
+                   ("Magit" (or (name . "^\\*Magit")
+                                (name . "^magit")))
                    ("Help" (or (name . "^\\*Help\\*")
                                (name . "^\\*Apropos\\*")
                                (name . "^\\*info\\*")))
@@ -1242,9 +1237,27 @@
 (use-package magit
   :ensure t
   :bind (("C-x g" . magit-status)
-         ("M-g l" . magit-list-repositories)
+         ("C-c g l" . magit-list-repositories)
          )
   )
+
+
+;; Transient commands: replaces the old magit-popup
+(use-package transient :defer t
+  :config (transient-bind-q-to-quit))
+
+;; git-messenger: popup commit message at current line
+;; https://github.com/syohex/emacs-git-messenger
+(use-package git-messenger
+  :ensure t
+  :bind
+  (("C-c g m" . git-messenger:popup-message)
+   :map git-messenger-map
+   ([(return)] . git-messenger:popup-close))
+  :config
+  ;; Enable magit-show-commit instead of pop-to-buffer
+  (setq git-messenger:use-magit-popup t)
+  (setq git-messenger:show-detail t))
 
 (use-package git-timemachine
   :ensure t)
