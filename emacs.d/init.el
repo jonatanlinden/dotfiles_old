@@ -658,6 +658,11 @@
   (undo-tree-auto-save-history t)
   (undo-tree-history-directory-alist
    `((".*" . ,temporary-file-directory)))
+  :bind
+  (("C-z" . 'undo)
+   ("C-S-z" . 'undo-tree-redo))
+  :config
+  (global-undo-tree-mode)
   )
 
 (use-package projectile
