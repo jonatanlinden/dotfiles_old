@@ -520,10 +520,13 @@
    ("C-c r" . counsel-rg)
    ("C-x l" . counsel-locate)
    ("s-r" . counsel-recentf)
+
    ([remap isearch-forward]  . swiper-isearch)
    ([remap isearch-backward] . counsel-grep-or-swiper)
    :map minibuffer-local-map
-   ("C-r" . counsel-minibuffer-history))
+   ("C-r" . counsel-minibuffer-history)
+   :map counsel-find-file-map
+   ("C-w" . counsel-up-directory))
   )
 
 ;; TODO: use https://github.com/yqrashawn/counsel-fd.git
@@ -569,7 +572,7 @@
   (company-backends
         '((company-files
            company-capf
-           company-yasnippet) company-dabbrev))
+           company-yasnippet) company-dabbrev company-dabbrev-code))
   :bind
   (:map company-active-map
         ("C-e" . company-other-backend)
@@ -654,6 +657,7 @@
 (use-package undo-tree
   :ensure t
   :custom
+  (undo-tree-enable-undo-in-region t)
   ;; autosave the undo-tree history
   (undo-tree-auto-save-history t)
   (undo-tree-history-directory-alist
@@ -907,6 +911,9 @@
 
 (use-package asm-mode
   :mode ("\\.i\\'" "\\.s\\'")
+  :bind (:map asm-mode-map
+              ("M-." . xref-posframe-dwim)
+              ("M-," . xref-posframe-pop))
   :init (setq comment-column 40
               asm-comment-char ?/)
   :config
@@ -977,9 +984,21 @@
   :ensure t
 )
 
+;; Best of both worlds
+(defun kill-region-or-backward-word ()
+  "Kill the region if active, otherwise kill the word before point."
+  (interactive)
+  (if (region-active-p)
+      (kill-region (region-beginning) (region-end))
+    (if (and (boundp 'subword-mode) subword-mode)
+        (subword-backward-kill 1)
+      (backward-kill-word 1))))
+
+
 (general-define-key
  "C-x C-m" 'counsel-M-x
- "C-w" 'backward-kill-word
+ "C-w" #'kill-region-or-backward-word
+;;"C-w" 'backward-kill-word
  "C-x C-k" 'kill-region
  "C-x O" '(other-window-prev :which-key "previous window")
  ;; use hippie-expand instead of dabbrev
@@ -1394,6 +1413,18 @@
 (use-package treemacs-magit
   :after treemacs magit
   :ensure t)
+
+(use-package posframe
+  :ensure t)
+
+(use-package xref-posframe
+  :load-path "lisp/xref-posframe")
+
+(use-package xref-asm
+  :load-path "lisp/xref-asm"
+  :after asm-mode
+  :config
+  (xref-asm-activate))
 
 (use-package cheatsheet
   :ensure t
