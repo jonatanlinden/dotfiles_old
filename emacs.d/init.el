@@ -51,7 +51,7 @@
 
 ;; Default font
 (cond (*is-win* (set-frame-font "Consolas 11" nil t))
-      (*is-mac* (set-face-attribute 'default nil :family "Menlo" :height 140)))
+      (*is-mac* (set-face-attribute 'default nil :family "SF Mono" :height 130)))
 
 
 (when (memq window-system '(mac ns))
