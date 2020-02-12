@@ -644,7 +644,7 @@
 ;; show available keybindings after you start typing
 (use-package which-key
   :ensure t
-  :diminish ""
+  :diminish which-key-mode
   :config (which-key-mode +1)
   )
 
@@ -656,6 +656,7 @@
 
 (use-package undo-tree
   :ensure t
+  :diminish undo-tree-mode
   :custom
   (undo-tree-enable-undo-in-region t)
   ;; autosave the undo-tree history
@@ -709,7 +710,7 @@
   :ensure t
   :custom (lsp-prefer-flymake nil)
   :commands lsp
-  :hook ruby-mode)
+  :hook (ruby-mode . lsp))
 
 (use-package company-lsp
   :ensure t
@@ -858,9 +859,7 @@
 
 (use-package json-mode
   :ensure t
-  :mode (("\\.json\\'" . json-mode)
-         ("\\.tmpl\\'" . json-mode)
-         ("\\.eslintrc\\'" . json-mode))
+  :mode ("\\.json\\'" "\\.tmpl\\'" "\\.eslintrc\\'")
   :init (setq-default js-indent-level 2))
 
 
@@ -1429,6 +1428,10 @@
 (use-package cheatsheet
   :ensure t
   )
+
+(use-package nxml-mode
+  :mode ("\\.xml\\'")
+  :config (setq show-smartparens-mode -1))
 
 (cheatsheet-add
  :group 'General
