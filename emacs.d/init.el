@@ -55,8 +55,9 @@
 ;; Avoid emacs frame resize after font change for speed
 (setq frame-inhibit-implied-resize t)
 
+
 ;; Default font
-(cond (*is-win* (set-frame-font "Consolas 11" nil t))
+(cond (*is-win* (add-to-list 'default-frame-alist '(font . "Consolas 11")))
       (*is-mac* (set-face-attribute 'default nil :family "Menlo" :height 140)))
 
 
