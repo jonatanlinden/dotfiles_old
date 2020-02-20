@@ -49,6 +49,9 @@
 ;; (mapconcat (quote identity)
 ;;            (sort (font-family-list) #'string-lessp) "\n"))
 
+;; Avoid emacs frame resize after font change for speed
+(setq frame-inhibit-implied-resize t)
+
 ;; Default font
 (cond (*is-win* (set-frame-font "Consolas 11" nil t))
       (*is-mac* (set-face-attribute 'default nil :family "Menlo" :height 140)))
@@ -58,6 +61,8 @@
   (add-to-list 'default-frame-alist '(ns-appearance . light))
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
 
+;; Avoid eager loading of packages dependent on ...
+(setq initial-major-mode 'fundamental-mode)
 
 ;; TRY: check if this prevents freezing during command evaluation
 (defun jl/minibuffer-setup-hook ()
@@ -77,18 +82,6 @@
 (when (file-exists-p jonatan-personal-preload)
   (load jonatan-personal-preload))
 
-(require 'package)
-
-(add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/") t)
-;; keep the installed packages in .emacs.d
-(setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
-(package-initialize)
-;; update the package metadata is the local cache is missing
-(unless package-archive-contents
-  (package-refresh-contents))
-
-
 ;; create the savefile dir if it doesn't exist
 (unless (file-exists-p jonatan-savefile-dir)
   (make-directory jonatan-savefile-dir))
@@ -96,18 +89,6 @@
 ;; create the savefile dir if it doesn't exist
 (unless (file-exists-p jonatan-personal-dir)
   (make-directory jonatan-personal-dir))
-
-
-
-;; config changes made through the customize UI will be store here
-(setq custom-file (expand-file-name "custom.el" jonatan-personal-dir))
-
-;; load the personal settings (this includes `custom-file')
-(when (file-exists-p jonatan-personal-dir)
-  (message "Loading personal configuration files in %s..." jonatan-personal-dir)
-  (mapc 'load (directory-files jonatan-personal-dir 't "^[^#].*el$")))
-
-;; (load custom-file)
 
 (setq auth-sources
     '((:source "~/.emacs.d/.authinfo.gpg")))
@@ -214,7 +195,64 @@
 ;; smart tab behavior - indent or complete
 (setq tab-always-indent 'complete)
 
-(global-auto-revert-mode 1)
+;; config changes made through the customize UI will be store here
+(setq custom-file (expand-file-name "custom.el" jonatan-personal-dir))
+
+;; (load custom-file)
+
+(require 'package)
+
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/") t)
+;; keep the installed packages in .emacs.d
+(setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
+(package-initialize)
+;; update the package metadata is the local cache is missing
+(unless package-archive-contents
+  (package-refresh-contents))
+
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+       (bootstrap-version 5))
+   (unless (file-exists-p bootstrap-file)
+     (with-current-buffer
+         (url-retrieve-synchronously
+          "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+          'silent 'inhibit-cookies)
+       (goto-char (point-max))
+       (eval-print-last-sexp)))
+   (load bootstrap-file nil 'nomessage))
+
+(setq straight-use-symlinks t)
+;; (setq straight-use-package-by-default t)
+
+(straight-use-package 'use-package)
+
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+(setq use-package-verbose t)
+
+(eval-when-compile
+  (require 'use-package))
+
+
+;; load the personal settings (this includes `custom-file')
+(when (file-exists-p jonatan-personal-dir)
+  (message "Loading personal configuration files in %s..." jonatan-personal-dir)
+  (mapc 'load (directory-files jonatan-personal-dir 't "^[^#].*el$")))
+
+
+(use-package diminish                ;; if you use :diminish
+  :ensure t)
+
+(use-package bind-key                ;; if you use any :bind variant
+  :ensure t)
+
+;; manage elpa keys
+(use-package gnu-elpa-keyring-update
+  :ensure t
+  )
 
 (use-package server
   :if *is-win*
@@ -230,24 +268,6 @@
     ;; needed for the server to start on Windows.
     (defun server-ensure-safe-dir (dir) "Noop" t)))
 
-(unless (package-installed-p 'use-package)
-  (package-install 'use-package))
-(setq use-package-verbose t)
-
-;; This is only needed once, near the top of the file
-(eval-when-compile
-  (require 'use-package))
-
-(use-package diminish                ;; if you use :diminish
-  :ensure t)
-
-(use-package bind-key                ;; if you use any :bind variant
-  :ensure t)
-
-;; manage elpa keys
-(use-package gnu-elpa-keyring-update
-  :ensure t
-  )
 
 (use-package exec-path-from-shell
   :if (memq window-system '(mac ns x))
@@ -293,8 +313,10 @@
             ;;(assq-delete-all 'which-func-mode mode-line-misc-info))
 
 (use-package paren
-  :config
-  (show-paren-mode +1))
+  :hook (after-init . show-paren-mode)
+  :custom
+  (show-paren-when-point-inside-paren t)
+  (show-paren-when-point-in-periphery t))
 
 (use-package smartparens
   :ensure t
@@ -334,13 +356,13 @@
 
 
 ;; saveplace remembers your location in a file when saving files
-(require 'saveplace)
+
 (use-package saveplace
-  :ensure t
   :custom
   (save-place-file (expand-file-name "saveplace" jonatan-savefile-dir))
   ;; activate it for all buffers
   (save-place t)
+  :hook (after-init . save-place-mode)
   )
 
 (use-package savehist
@@ -362,8 +384,7 @@
   (recentf-auto-cleanup 'never)
   (recentf-save-file (expand-file-name "recentf" jonatan-savefile-dir))
   (recentf-exclude '(".*-autoloads\\.el\\'" "COMMIT_EDITMSG\\'"))
-  :config
-  (recentf-mode +1))
+  :hook (after-init . recentf-mode))
 
 (use-package crux
   :ensure t
@@ -426,9 +447,8 @@
   :diminish ""
   :init
   (setq anzu-cons-mode-line-p nil)
-  :config
-  (global-anzu-mode))
-
+  :hook
+  (after-init . global-anzu-mode))
 
 (use-package avy
   :ensure t
@@ -475,8 +495,9 @@
   (ivy-virtual-abbreviate 'abbreviate)
   (ivy-count-format "(%d/%d) ")
   (ivy-initial-inputs-alist nil)
-  :init
-  (ivy-mode)
+  :hook
+  (after-init . ivy-mode)
+  (ivy-mode . counsel-mode)
   :bind
   ("s-b" . ivy-switch-buffer)
   ("H-b" . ivy-switch-buffer)
@@ -536,8 +557,9 @@
 (use-package volatile-highlights
   :diminish
   :ensure t
-  :config
-  (volatile-highlights-mode +1))
+  :hook
+  (after-init . volatile-highlights-mode)
+  )
 
 
 ;; (use-package fd-dired
@@ -548,6 +570,7 @@
 ;;  :ensure t)
 
 (use-package dired
+  :defer t
   :custom
   ;; always delete and copy recursively
   (dired-recursive-deletes 'always)
@@ -601,7 +624,7 @@
 (use-package company-flx
   :ensure t
   :after (company)
-  :config (company-flx-mode +1)
+  :init (company-flx-mode +1)
   )
 
 
@@ -645,7 +668,7 @@
 (use-package which-key
   :ensure t
   :diminish which-key-mode
-  :config (which-key-mode +1)
+  :hook (after-init . which-key-mode)
   )
 
 (use-package discover-my-major
@@ -743,7 +766,6 @@
   :custom
   (lsp-ui-sideline-enable nil)
   (lsp-ui-doc-enable nil)
-  (lsp-ui-flycheck-enable t)
   (lsp-ui-imenu-enable t)
   (lsp-ui-sideline-ignore-duplicate t)
   :after (lsp)
@@ -788,23 +810,6 @@
   :after ruby-mode
   :hook ruby-mode)
 
-(use-package robe
-  :ensure t
-  :after (ruby-mode inf-ruby)
-  :bind (:map ruby-mode-map
-              ("C-M-." . robe-jump))
-  :config
-  (make-local-variable 'company-backends)
-  (push 'company-robe company-backends)
-  ;;(inf-ruby-console-auto)
-  :hook (ruby-mode . robe-mode)
-  ;; :config
-  ;; (defadvice inf-ruby-console-auto
-  ;;   (before activate-rvm-for-robe activate)
-  ;;  (rvm-activate-corresponding-ruby))
-  )
-
-
 (use-package ruby-tools
   :ensure t
   :commands ruby-tools-mode
@@ -819,6 +824,7 @@
            ("\\.markdown\\'" . gfm-mode)))
 
 (use-package css-mode
+  :mode ("\\.css\\'" "\\.scss\\'" "\\.sass\\'")
   :custom (css-indent-offset 2)
   )
 
@@ -881,6 +887,7 @@
   )
 
 (use-package whitespace
+  :commands (whitespace-mode)
   :init (setq whitespace-line-column 80))
 ;  :hook (asm-mode . whitespace-mode)
 
@@ -1085,8 +1092,7 @@
 (use-package beacon
   :ensure t
   :diminish beacon-mode
-  :config
-  (beacon-mode +1)
+  :hook (after-init . beacon-mode)
   )
 
 
@@ -1136,8 +1142,8 @@
 
 (use-package request
   :ensure t
-  :custom (request-curl (if *is-win*  "c:/ProgramData/chocolatey/bin/curl.exe" "curl")
-                        )
+  :defer t
+  :custom (request-curl (if *is-win*  "c:/ProgramData/chocolatey/bin/curl.exe" "curl"))
   )
 
 (use-package eldoc
@@ -1283,6 +1289,7 @@
   (setq git-messenger:show-detail t))
 
 (use-package git-timemachine
+  :commands (git-timemachine)
   :ensure t)
 
 (use-package magit-svn
@@ -1333,13 +1340,14 @@
   (ediff-ignore-similar-regions t)
   (ediff-window-setup-function 'ediff-setup-windows-plain)
   :hook
-  (ediff-before-setup-hook . store-pre-ediff-winconfig)
-  (ediff-quit-hook . restore-pre-ediff-winconfig)
+  (ediff-before-setup . store-pre-ediff-winconfig)
+  (ediff-quit . restore-pre-ediff-winconfig)
   )
 
 (use-package google-this
   :ensure t
   :diminish ""
+  :commands (google-this)
   :config (google-this-mode 1)
   )
 
@@ -1354,7 +1362,7 @@
   )
 
 (use-package point-history
-  :hook 'after-init-hook
+  :hook after-init
   :bind (("C-c C-/" . point-history-show))
   :init (setq point-history-ignore-buffer "^ \\*Minibuf\\|^ \\*point-history-show*"))
 
@@ -1389,6 +1397,7 @@
 ;; numbered window shortcuts
 (use-package winum
   :ensure t
+  :defer t
   :config
   (winum-mode))
 
@@ -1414,9 +1423,11 @@
   :ensure t)
 
 (use-package posframe
+  :defer
   :ensure t)
 
 (use-package xref-posframe
+  :defer t
   :load-path "lisp/xref-posframe")
 
 (use-package xref-asm
@@ -1427,6 +1438,7 @@
 
 (use-package cheatsheet
   :ensure t
+  :commands (cheatsheet-show)
   )
 
 (use-package nxml-mode
