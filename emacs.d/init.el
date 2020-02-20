@@ -1,5 +1,8 @@
 ;; -*- lexical-binding: t -*-
 
+;; For inspiration: https://emacs.nasy.moe/
+;; https://ladicle.com/post/config
+
 (defvar before-init-time (current-time) "Time when init.el was started")
 
 (message "Starting emacs %s" (current-time-string))
@@ -211,6 +214,9 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
+;; It seems this setting has to be before bootstrapping straight, to avoid
+;; a "malformed cache"
+(setq straight-use-symlinks t)
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -224,13 +230,17 @@
        (eval-print-last-sexp)))
    (load bootstrap-file nil 'nomessage))
 
-(setq straight-use-symlinks t)
+;; No other configuration should be necessary to make this work;
+;; however, you may wish to call straight-prune-build occasionally,
+;; since otherwise this cache file may grow quite large over time.
+(setq straight-cache-autoloads t)
 ;; (setq straight-use-package-by-default t)
 
 (straight-use-package 'use-package)
 
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
+
 (setq use-package-verbose t)
 
 (eval-when-compile
@@ -901,34 +911,41 @@
 
 (setq gud-gdb-command-name "gdb-multiarch -i=mi --annotate=1")
 
-(defun jl/asm-mode-hook ()
+;;(defun jl/asm-mode-hook ()
   ;; you can use `comment-dwim' (M-;) for this kind of behaviour anyway
-
-  ;;(local-unset-key (vector asm-comment-char))
+;;(local-unset-key (vector asm-comment-char))
   ;; asm-mode sets it locally to nil, to "stay closer to the old TAB behaviour".
-  (setq tab-always-indent (default-value 'tab-always-indent)
-        comment-column 40
-        tab-stop-list (number-sequence 8 64 8)
-        ))
+;;  (setq tab-always-indent (default-value 'tab-always-indent)
+  ;;      comment-column 40
+    ;;    tab-stop-list (number-sequence 8 64 8)
+      ;;  ))
 
 (use-package string-inflection
   :ensure t
   )
 
-(use-package asm-mode
+(use-package arm-mode
+  :load-path "lisp/arm-mode"
   :mode ("\\.i\\'" "\\.s\\'")
-  :bind (:map asm-mode-map
+  :bind (:map arm-mode-map
               ("M-." . xref-posframe-dwim)
               ("M-," . xref-posframe-pop))
-  :init (setq comment-column 40
-              asm-comment-char ?/)
-  :config
-  ;; Hack to get a // comment in asm-mode.
-  (defadvice asm-comment (after extra-slash activate)
-    (insert-char ?/))
-  :hook (asm-mode . jl/asm-mode-hook))
+)
 
-(add-hook 'asm-mode-hook #'jl/asm-mode-hook)
+;; (use-package asm-mode
+;;   :mode ("\\.i\\'" "\\.s\\'")
+;;   :bind (:map asm-mode-map
+;;               ("M-." . xref-posframe-dwim)
+;;               ("M-," . xref-posframe-pop))
+;;   :init (setq comment-column 40
+;;               asm-comment-char ?/)
+;;   :config
+;;   ;; Hack to get a // comment in asm-mode.
+;;   (defadvice asm-comment (after extra-slash activate)
+;;     (insert-char ?/))
+;;   :hook (asm-mode . jl/asm-mode-hook))
+
+;; (add-hook 'asm-mode-hook #'jl/asm-mode-hook)
 
 (defun jl/c-mode-common-hook ()
   (require 'smartparens-c)
@@ -1160,11 +1177,10 @@
 
 (use-package arm-lookup
   :load-path "lisp/arm-lookup"
+  :after arm-mode
   :custom
   (arm-lookup-browse-pdf-function 'arm-lookup-browse-pdf-sumatrapdf)
-  :commands (arm-lookup)
-  :bind (:map asm-mode-map ("M-." . arm-lookup))
-  ;:bind (("M-." . arm-lookup))
+  :bind (:map arm-mode-map ("C-M-." . arm-lookup))
   )
 
 
@@ -1361,10 +1377,6 @@
          ("M-g q" . dumb-jump-quick-look))
   )
 
-(use-package point-history
-  :hook after-init
-  :bind (("C-c C-/" . point-history-show))
-  :init (setq point-history-ignore-buffer "^ \\*Minibuf\\|^ \\*point-history-show*"))
 
 (use-package bm
   :disabled
@@ -1423,16 +1435,16 @@
   :ensure t)
 
 (use-package posframe
-  :defer
+  :after xref-posframe
   :ensure t)
 
 (use-package xref-posframe
-  :defer t
+  :after xref-asm
   :load-path "lisp/xref-posframe")
 
 (use-package xref-asm
   :load-path "lisp/xref-asm"
-  :after asm-mode
+  :after arm-mode
   :config
   (xref-asm-activate))
 
@@ -1444,6 +1456,14 @@
 (use-package nxml-mode
   :mode ("\\.xml\\'")
   :config (setq show-smartparens-mode -1))
+
+(use-package point-history
+  :disabled t
+  :straight (point-history :type git :host github :repo "blue0513/point-history")
+  :hook after-init
+  :bind (("C-c C-/" . point-history-show))
+  :init (setq point-history-ignore-buffer "^ \\*Minibuf\\|^ \\*point-history-show*"))
+
 
 (cheatsheet-add
  :group 'General
