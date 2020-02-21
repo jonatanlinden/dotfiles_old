@@ -57,7 +57,7 @@
 
 
 ;; Default font
-(cond (*is-win* (add-to-list 'default-frame-alist '(font . "Consolas 11")))
+(cond (*is-win* (add-to-list 'default-frame-alist '(font . "Consolas-11")))
       (*is-mac* (set-face-attribute 'default nil :family "Menlo" :height 140)))
 
 
@@ -126,6 +126,11 @@
     (concat "/e,/select," (subst-char-in-string ?/ ?\\ (convert-standard-filename buffer-file-name)))
   )
 )
+
+(defmacro csetq (variable value)
+  `(funcall (or (get ',variable 'custom-set)
+                'set-default)
+            ',variable ,value))
 
 ;; Always load newest byte code
 (setq load-prefer-newer t)
@@ -926,7 +931,8 @@
   )
 
 (use-package arm-mode
-  :load-path "lisp/arm-mode"
+  :straight (arm-mode :type git :host github :repo "charJe/arm-mode")
+  ;;:load-path "lisp/arm-mode"
   :mode ("\\.i\\'" "\\.s\\'")
   :bind (:map arm-mode-map
               ("M-." . xref-posframe-dwim)
@@ -1402,6 +1408,11 @@
          ("C-<f2>" . bm-toggle))
   )
 
+(use-package keyfreq
+  :ensure t
+  :hook
+  (after-init . keyfreq-mode)
+  (after-init . keyfreq-autosave-mode))
 
 ;;; in bat mode, treat _ as a word constitutent
 (add-hook 'bat-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
