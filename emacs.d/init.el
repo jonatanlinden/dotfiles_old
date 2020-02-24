@@ -251,6 +251,8 @@
 
 (eval-when-compile
   (require 'use-package))
+(require 'diminish)
+(require 'bind-key)
 
 
 ;; load the personal settings (this includes `custom-file')
@@ -259,11 +261,6 @@
   (mapc 'load (directory-files jonatan-personal-dir 't "^[^#].*el$")))
 
 
-(use-package diminish                ;; if you use :diminish
-  :ensure t)
-
-(use-package bind-key                ;; if you use any :bind variant
-  :ensure t)
 
 ;; manage elpa keys
 (use-package gnu-elpa-keyring-update
@@ -487,6 +484,7 @@
 
 ;; needed to tweak the matching algorithm used by ivy
 (use-package flx
+  :defer t
   :ensure t)
 
 (use-package amx
@@ -598,6 +596,11 @@
 
 (put 'dired-find-alternate-file 'disabled nil)
 
+(use-package company-flx
+    :after (company flx)
+    :ensure t
+    :init (company-flx-mode +1))
+
 (use-package company
   :ensure t
   ;; :diminish (company-mode . "(c)")
@@ -635,12 +638,6 @@
   ;; show trailing whitespace in editor
   (setq show-trailing-whitespace t)
   ;;(setq show-tabs)
-  )
-
-(use-package company-flx
-  :ensure t
-  :after (company)
-  :init (company-flx-mode +1)
   )
 
 
@@ -997,15 +994,18 @@
 
 (use-package cc-mode
   :defer t
+  :bind* (:map c-mode-base-map
+               ("C-c C-o" . ff-find-other-file))
   :config
   (setq c-default-style "k&r"
-        c-basic-offset 2)
-  )
+        c-basic-offset 2))
 
 (use-package c++-mode
   :after smartparens
   :bind
   ([remap kill-sexp] . sp-kill-hybrid-sexp)
+  (:map c++-mode-map
+        ("C-c C-o" . ff-find-other-file))
   :hook (c++-mode . jl/c++-mode-hook)
   )
 
@@ -1068,10 +1068,10 @@
 
 (use-package clang-format
   :ensure t
-  :commands clang-format clang-format-buffer
-  :bind (:map c++-mode-map
-              ("C-c f" . clang-format-region)
-              )
+  :after cc-mode
+  :commands (clang-format-buffer clang-format-defun)
+  :bind* (:map c++-mode-map
+               ("C-c f" . clang-format-region))
   )
 
 (general-define-key
@@ -1223,6 +1223,14 @@
            "* TODO %i%? %a")
           ))
   )
+
+(use-package org-mru-clock
+  :ensure t
+  :bind* (("C-c C-x i" . org-mru-clock-in)
+          ("C-c C-x C-j" . org-mru-clock-select-recent-task))
+  :custom
+  (org-mru-clock-how-many 10)
+  (org-mru-clock-completing-read #'ivy-completing-read))
 
 (setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
 
