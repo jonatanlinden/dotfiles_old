@@ -584,19 +584,20 @@
   ;; always delete and copy recursively
   (dired-recursive-deletes 'always)
   (dired-recursive-copies 'always)
-  (dired-dwim-target t)
-  )
+  (dired-dwim-target t))
 
   ;; enable some really cool extensions like C-x C-j(dired-jump)
 (use-package dired-x
-  :after dired)
+  :after dired
+  :bind ("C-x C-j" . dired-jump))
 
 (put 'dired-find-alternate-file 'disabled nil)
 
 (use-package company-flx
-    :after (company flx)
-    :straight t
-    :init (company-flx-mode +1))
+  :disabled t
+  :after (company flx)
+  :straight t
+  :init (company-flx-mode +1))
 
 (use-package company
   :straight t
@@ -604,9 +605,12 @@
   :diminish company-mode
   :commands company-mode
   :custom (company-minimum-prefix-length 2)
-  (company-global-modes '(not text-mode)
-                        )
+  (company-global-modes '(not text-mode))
+  (company-idle-delay 0.5) ; decrease delay before autocompletion popup shows
   (company-dabbrev-downcase nil)
+  (company-tooltip-limit 10)
+  (company-tooltip-flip-when-above t)
+  (company-echo-delay 0) ; remove annoying blinking
     ;; set default `company-backends'
   (company-backends
         '((company-files
@@ -617,14 +621,6 @@
         ("C-e" . company-other-backend)
         ("C-n" . company-select-next-or-abort)
         ("C-p" . company-select-previous-or-abort))
-  :init
-  (setq company-idle-delay 0.5    ; decrease delay before
-                                        ; autocompletion popup shows
-        company-echo-delay 0     ; remove annoying blinking
-        company-tooltip-limit 10
-        company-tooltip-flip-when-above t
-
-        )
   :hook ((after-init . global-company-mode)
          (prog-mode . jl/prog-mode-hook))
   )
@@ -1225,9 +1221,7 @@
   :after (org mediawiki)
   )
 
-(use-package ffap
-  :custom (ffap-machine-p-known 'reject)
-  )
+(csetq ffap-machine-p-known 'reject)
 
 (use-package mediawiki
   :straight t
