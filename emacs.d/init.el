@@ -255,6 +255,12 @@
 (use-package bind-key
   :straight t)
 
+(straight-use-package 'no-littering)
+(require 'no-littering)
+(setq auto-save-file-name-transforms
+      `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+(setq custom-file (no-littering-expand-etc-file-name "custom.el"))
+
 
 ;; load the personal settings (this includes `custom-file')
 (when (file-exists-p jonatan-personal-dir)
@@ -377,8 +383,7 @@
         '(search-ring regexp-search-ring)
         ;; save every minute
         savehist-autosave-interval 60
-        ;; keep the home clean
-        savehist-file (expand-file-name "savehist" jonatan-savefile-dir))
+        )
   (savehist-mode +1))
 
 (use-package recentf
@@ -387,8 +392,9 @@
   ;; disable recentf-cleanup on Emacs start, because it can cause
   ;; problems with remote files
   (recentf-auto-cleanup 'never)
-  (recentf-save-file (expand-file-name "recentf" jonatan-savefile-dir))
   (recentf-exclude '(".*-autoloads\\.el\\'" "COMMIT_EDITMSG\\'"))
+  (add-to-list 'recentf-exclude no-littering-var-directory)
+  (add-to-list 'recentf-exclude no-littering-etc-directory)
   :hook (after-init . recentf-mode))
 
 (use-package crux
@@ -467,9 +473,13 @@
   ;;(global-set-key (kbd "C-c C-j") 'avy-resume)
   ;; :chords (("jj" . avy-goto-line)
   ;;          ("jk" . avy-goto-word)
-
   )
 
+(use-package avy-zap
+  :straight t
+  :bind
+  ("M-z" . avy-zap-to-char-dwim)
+  ("M-z" . avy-zap-up-to-char-dwim))
 
 ;; needed to tweak the matching algorithm used by ivy
 (use-package flx
@@ -478,7 +488,6 @@
 
 (use-package amx
   :straight t
-  :init (setq-default amx-save-file (expand-file-name "smex-items" jonatan-savefile-dir))
   :bind (("<remap> <execute-extended-command>" . amx)))
 
 
@@ -491,10 +500,7 @@
 
 ;; saveplace remembers your location in a file when saving files
 (use-package saveplace
-  :custom
-  (save-place-file (expand-file-name "saveplace" jonatan-savefile-dir))
-  :hook (after-init . save-place-mode)
-  )
+  :hook (after-init . save-place-mode))
 
 
 
@@ -704,7 +710,6 @@
   (projectile-mode-line-prefix " P")
   (projectile-completion-system 'ivy)
   (projectile-enable-caching t)
-  (projectile-cache-file (expand-file-name  "projectile.cache" jonatan-savefile-dir))
   (projectile-svn-command "find . -type f -not -iwholename '*.svn/*' -print0")
   ;; on windows,
   :bind
@@ -726,9 +731,7 @@
   (flycheck-checker-error-threshold 1605)
   (flycheck-check-syntax-automatically '(save))
   (flycheck-mode-line-prefix "FC")
-  :init (global-flycheck-mode t)
-  )
-
+  :init (global-flycheck-mode t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; LANGUAGES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1056,10 +1059,6 @@
   :commands (clang-format-buffer clang-format-defun)
   :bind* (:map c++-mode-map
                ("C-c f" . clang-format-region)))
-
-(general-define-key
- :keymaps 'c-mode-base-map
- "C-c C-o" '(ff-find-other-file :which-key "toggle header/impl file"))
 
 (use-package ibuffer
   :bind ("C-x C-b" . ibuffer)
