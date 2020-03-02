@@ -204,25 +204,14 @@
 ;; smart tab behavior - indent or complete
 (setq tab-always-indent 'complete)
 
-;; config changes made through the customize UI will be store here
-(setq custom-file (expand-file-name "custom.el" jonatan-personal-dir))
-
-;; (load custom-file)
-
-;; (require 'package)
-
-;; (add-to-list 'package-archives
-;;             '("melpa" . "https://melpa.org/packages/") t)
-;; keep the installed packages in .emacs.d
-;; (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
-;; (package-initialize)
-;; update the package metadata is the local cache is missing
-;; (unless package-archive-contents
-;;  (package-refresh-contents))
-
 ;; It seems this setting has to be before bootstrapping straight, to avoid
 ;; a "malformed cache"
-(setq straight-use-symlinks t)
+(setq straight-use-symlinks t
+      ;; No other configuration should be necessary to make this work;
+      ;; however, you may wish to call straight-prune-build occasionally,
+      ;; since otherwise this cache file may grow quite large over time.
+      straight-cache-autoloads t)
+;; (setq straight-use-package-by-default t)
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -235,12 +224,6 @@
        (goto-char (point-max))
        (eval-print-last-sexp)))
    (load bootstrap-file nil 'nomessage))
-
-;; No other configuration should be necessary to make this work;
-;; however, you may wish to call straight-prune-build occasionally,
-;; since otherwise this cache file may grow quite large over time.
-(setq straight-cache-autoloads t)
-;; (setq straight-use-package-by-default t)
 
 (straight-use-package 'use-package)
 
@@ -260,9 +243,9 @@
 (setq auto-save-file-name-transforms
       `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
+(load custom-file)
 
-
-;; load the personal settings (this includes `custom-file')
+;; load the personal settings
 (when (file-exists-p jonatan-personal-dir)
   (message "Loading personal configuration files in %s..." jonatan-personal-dir)
   (mapc 'load (directory-files jonatan-personal-dir 't "^[^#].*el$")))
@@ -270,8 +253,7 @@
 (use-package utils
   :load-path "lisp"
   :bind (:map emacs-lisp-mode-map
-              ([remap eval-last-sexp] . 'jl/eval-last-sexp-or-region))
-  )
+              ([remap eval-last-sexp] . 'jl/eval-last-sexp-or-region)))
 
 ;; manage elpa keys
 (use-package gnu-elpa-keyring-update
