@@ -2,7 +2,7 @@
 
 ;; For inspiration: https://emacs.nasy.moe/
 ;; https://ladicle.com/post/config
-
+;; (setq esup-child-profile-require-level 0)
 ;; List available fonts in *Messages* buffer
 ;;(message
 ;; (mapconcat (quote identity)
@@ -802,11 +802,10 @@
   :straight t
   :bind (("C-c g n" . diff-hl-next-hunk)
          ("C-c g p" . diff-hl-previous-hunk))
-  :init
   ;; Highlight changes to the current file in the fringe
-  (global-diff-hl-mode)
   ;; Highlight changed files in the fringe of Dired
-  :hook ((dired-mode . diff-hl-dired-mode)
+  :hook ((after-init . global-diff-hl-mode)
+         (dired-mode . diff-hl-dired-mode)
          (magit-post-refresh . diff-hl-magit-post-refresh))
   )
 
@@ -1244,6 +1243,8 @@
 
 (use-package esup
   :straight t
+  :init
+  (setq esup-child-profile-require-level 0)
   :commands esup
   )
 
