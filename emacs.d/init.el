@@ -13,7 +13,7 @@
 
 (defun jl/reset-gc-threshold ()
   "Reset `gc-cons-threshold' to its default value."
-  (setq gc-cons-threshold (* 20 1024 1024)))
+  (setq gc-cons-threshold (* 16 1024 1024)))
 
 ;; reset frequency of garbage collection once emacs has booted
 (add-hook 'emacs-startup-hook #'jl/reset-gc-threshold)
@@ -26,40 +26,14 @@
                               (time-subtract after-init-time before-init-time)))
                      gcs-done)))
 
-(defvar *is-mac* (eq system-type 'darwin))
-(defvar *is-win* (eq system-type 'windows-nt))
 
-
-;;;;; put early, avoid annoying resizes during startup
-
-;; the toolbar is just a waste of valuable screen estate
-;; in a tvty tool-bar-mode does not properly auto-load, and is
-;; already disabled anyway
-(when (fboundp 'tool-bar-mode)
-  (tool-bar-mode -1))
-
-(when (fboundp 'menu-bar-mode)
-  (menu-bar-mode -1))
-
-(when (fboundp 'scroll-bar-mode)
-  (scroll-bar-mode -1))
-
-;; try the following for unicode characters
-;; (setq inhibit-compacting-font-caches t)
 
 ;; List available fonts in *Messages* buffer
 ;;(message
 ;; (mapconcat (quote identity)
 ;;            (sort (font-family-list) #'string-lessp) "\n"))
-
-;; Avoid emacs frame resize after font change for speed
-(setq frame-inhibit-implied-resize t)
-
-
-;; Default font
-
-(cond (*is-win* (add-to-list 'default-frame-alist '(font . "Consolas-11")))
-      (*is-mac* (add-to-list 'default-frame-alist '(font . "SF Mono-13"))))
+(when (eval-when-compile (version< emacs-version "27"))
+  (load "~/.emacs.d/early-init.el"))
 
 (when (memq window-system '(mac ns))
   (add-to-list 'default-frame-alist '(ns-appearance . light))
