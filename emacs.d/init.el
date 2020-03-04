@@ -246,26 +246,19 @@
     (load-theme 'sanityinc-tomorrow-night)
     ))
 
-(use-package smart-mode-line
+(use-package doom-modeline
   :straight t
-  :custom
-  (sml/vc-mode-show-backend t)
-  (sml/theme 'light)
-  (sml/name-width 30))
+  :init
+  (setq doom-modeline-icon nil)
+  (setq doom-modeline-height 18)
+  (doom-modeline-mode 1))
 
 (use-package which-func
   :config
   ;; Show the current function name in the header line, not in mode-line
-  (let ((which-func '(which-func-mode ("" which-func-format " "))))
-    (setq-default mode-line-format (remove which-func mode-line-format))
-    (setq-default mode-line-misc-info (remove which-func mode-line-misc-info))
-    (setq-default header-line-format which-func))
+  (setq mode-line-misc-info
+        (assq-delete-all 'which-function-mode mode-line-misc-info))
   (which-function-mode))
-
-;; (setq mode-line-misc-info
-            ;; We remove Which Function Mode from the mode line, because it's mostly
-            ;; invisible here anyway.
-            ;;(assq-delete-all 'which-func-mode mode-line-misc-info))
 
 (use-package paren
   :hook (after-init . show-paren-mode)
