@@ -7,10 +7,11 @@
 
 (defvar before-init-time (current-time) "Time when init.el was started.")
 
+(message "Starting emacs %s" (current-time-string))
 
 (defun jl/reset-gc-threshold ()
   "Reset `gc-cons-threshold' to its default value."
-  (setq gc-cons-threshold (* 20 1024 1024)))
+  (setq gc-cons-threshold (* 16 1024 1024)))
 
 ;; reset frequency of garbage collection once emacs has booted
 (add-hook 'emacs-startup-hook #'jl/reset-gc-threshold)

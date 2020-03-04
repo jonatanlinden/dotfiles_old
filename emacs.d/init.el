@@ -3,31 +3,6 @@
 ;; For inspiration: https://emacs.nasy.moe/
 ;; https://ladicle.com/post/config
 
-(defvar before-init-time (current-time) "Time when init.el was started")
-
-(message "Starting emacs %s" (current-time-string))
-
-;; reduce the frequency of garbage collection by making it happen on
-;; each 50MB of allocated data (the default is on every 0.76MB)
-(setq gc-cons-threshold (* 128 1024 1024))
-
-(defun jl/reset-gc-threshold ()
-  "Reset `gc-cons-threshold' to its default value."
-  (setq gc-cons-threshold (* 16 1024 1024)))
-
-;; reset frequency of garbage collection once emacs has booted
-(add-hook 'emacs-startup-hook #'jl/reset-gc-threshold)
-
-(add-hook 'after-init-hook
-          (lambda ()
-            (message "Emacs ready in %s with %d garbage collections."
-                     (format "%.2f seconds"
-                             (float-time
-                              (time-subtract after-init-time before-init-time)))
-                     gcs-done)))
-
-
-
 ;; List available fonts in *Messages* buffer
 ;;(message
 ;; (mapconcat (quote identity)
