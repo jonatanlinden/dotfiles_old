@@ -251,6 +251,7 @@
   :init
   (setq doom-modeline-icon nil)
   (setq doom-modeline-height 18)
+  (setq doom-modeline-buffer-file-name-style 'buffer-name)
   (doom-modeline-mode 1))
 
 (use-package which-func
@@ -842,28 +843,14 @@
   )
 
 (use-package arm-mode
-  :straight (arm-mode :type git :host github :repo "charJe/arm-mode")
+  :straight (arm-mode :type git :host github :repo "charJe/arm-mode"
+                      :fork (:host github
+                                   :repo "jonatanlinden/arm-mode"))
   ;;:load-path "lisp/arm-mode"
   :mode ("\\.i\\'" "\\.s\\'")
   :bind (:map arm-mode-map
               ("M-." . xref-posframe-dwim)
-              ("M-," . xref-posframe-pop))
-)
-
-;; (use-package asm-mode
-;;   :mode ("\\.i\\'" "\\.s\\'")
-;;   :bind (:map asm-mode-map
-;;               ("M-." . xref-posframe-dwim)
-;;               ("M-," . xref-posframe-pop))
-;;   :init (setq comment-column 40
-;;               asm-comment-char ?/)
-;;   :config
-;;   ;; Hack to get a // comment in asm-mode.
-;;   (defadvice asm-comment (after extra-slash activate)
-;;     (insert-char ?/))
-;;   :hook (asm-mode . jl/asm-mode-hook))
-
-;; (add-hook 'asm-mode-hook #'jl/asm-mode-hook)
+              ("M-," . xref-posframe-pop)))
 
 (defun jl/c-mode-common-hook ()
   (require 'smartparens-c)
@@ -1201,7 +1188,7 @@
   :bind (("C-x g" . magit-status)
          ("C-c g l" . magit-list-repositories)
          )
-  )
+  :hook (magit-mode . magit-svn-mode))
 
 
 ;; Transient commands: replaces the old magit-popup
