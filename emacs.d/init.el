@@ -257,6 +257,7 @@
 (use-package which-func
   :config
   ;; Show the current function name in the header line, not in mode-line
+  (setq-default header-line-format '(which-func-mode ("" which-func-format " ")))
   (setq mode-line-misc-info
         (assq-delete-all 'which-function-mode mode-line-misc-info))
   (which-function-mode))
