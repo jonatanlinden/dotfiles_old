@@ -538,7 +538,7 @@
   :commands company-mode
   :custom (company-minimum-prefix-length 2)
   (company-global-modes '(not text-mode))
-  (company-idle-delay 0.5) ; decrease delay before autocompletion popup shows
+  (company-idle-delay 0.2) ; decrease delay before autocompletion popup shows
   (company-dabbrev-downcase nil)
   (company-tooltip-limit 10)
   (company-tooltip-flip-when-above t)
@@ -910,6 +910,10 @@
         ("C-c C-o" . ff-find-other-file))
   :hook (c++-mode . jl/c++-mode-hook)
   )
+
+(use-package modern-cpp-font-lock
+  :after c++-mode
+  :straight t)
 
 
 (use-package general
