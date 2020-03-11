@@ -237,9 +237,17 @@
   (exec-path-from-shell-copy-envs '("LC_ALL" "PYTHONPATH"))
   (exec-path-from-shell-initialize))
 
+(use-package solarized-theme
+  :straight t
+  :custom (solarized-use-more-italic t)
+  :init
+  (load-theme 'solarized-light t)
+  ;;(set-face-background 'default "#fdfdf0")
+  )
 
 (use-package color-theme-sanityinc-tomorrow
   :straight t
+  :disabled t
   :init
   (if window-system
       (load-theme 'sanityinc-tomorrow-day)
@@ -1072,7 +1080,7 @@
 
 
 (use-package arm-lookup
-  :load-path "lisp/arm-lookup"
+  :straight (arm-lookup :type git :host github :repo "jonatanlinden/arm-lookup")
   :after arm-mode
   :custom
   (arm-lookup-browse-pdf-function 'arm-lookup-browse-pdf-sumatrapdf)
