@@ -239,7 +239,6 @@
 
 (use-package solarized-theme
   :straight t
-  :custom (solarized-use-more-italic t)
   :init
   (load-theme 'solarized-light t)
   ;;(set-face-background 'default "#fdfdf0")
@@ -478,6 +477,7 @@
   (counsel-grep-base-command
    "rg -i -M 120 --no-heading --line-number --color never %s %s")
   (counsel-grep-swiper-limit 30000)
+  (counsel-rg-base-command "rg -M 120 --with-filename --no-heading --line-number --color never %s --path-separator / .")
   :config
   (if *is-win*
       (setq counsel-git-log-cmd "set GIT_PAGER=cat && git log --grep \"%s\""))
@@ -530,6 +530,12 @@
 (use-package dired-x
   :after dired
   :bind ("C-x C-j" . dired-jump))
+(use-package dired-plus
+  :straight t
+  :after dired
+  :bind
+  (:map dired-mode-map
+        ([remap yank] . diredp-yank-files)))
 
 (put 'dired-find-alternate-file 'disabled nil)
 
@@ -1455,6 +1461,10 @@
  :key "C-M-u"
  :description "inside brackets, move to opening bracket (up in structure)")
 
+(cheatsheet-add
+ :group 'Dired
+ :key "C-0 w"
+ :description "copy absolute path of file under point")
 
 (provide 'init)
 ;;; init.el ends here
