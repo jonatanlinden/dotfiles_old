@@ -657,6 +657,7 @@
         ("s-p" . projectile-command-map)
         ("s-p r" . projectile-ripgrep))
   :init
+  (setq projectile-indexing-method 'alien)
   (projectile-mode +1))
 
 (use-package counsel-projectile
