@@ -477,7 +477,6 @@
   (counsel-grep-base-command
    "rg -i -M 120 --no-heading --line-number --color never %s %s")
   (counsel-grep-swiper-limit 30000)
-  (counsel-rg-base-command "rg -M 120 --with-filename --no-heading --line-number --color never %s --path-separator / .")
   :config
   (if *is-win*
       (setq counsel-git-log-cmd "set GIT_PAGER=cat && git log --grep \"%s\""))
@@ -512,9 +511,10 @@
   )
 
 
-;; (use-package fd-dired
-;;   :ensure t
-;; )
+(use-package fd-dired
+  :straight (fd-dired :type git :host github :repo "yqrashawn/fd-dired")
+  :commands fd-dired
+)
 
 ;;(use-package counsel-fd
 ;;  :ensure t)
