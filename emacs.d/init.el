@@ -550,7 +550,7 @@
   ;; :diminish (company-mode . "(c)")
   :diminish company-mode
   :commands company-mode
-  :custom (company-minimum-prefix-length 2)
+  :custom (company-minimum-prefix-length 3)
   (company-global-modes '(not text-mode))
   (company-idle-delay 0.2) ; decrease delay before autocompletion popup shows
   (company-dabbrev-downcase nil)
@@ -570,6 +570,11 @@
   :hook ((after-init . global-company-mode)
          (prog-mode . jl/prog-mode-hook))
   )
+
+(use-package company-prescient
+  :after company
+  :straight t
+  :config (company-prescient-mode))
 
 (defun jl/prog-mode-hook ()
   (make-local-variable 'company-backends)
@@ -713,7 +718,7 @@
   :custom
   (lsp-ui-sideline-enable nil)
   (lsp-ui-doc-enable nil)
-  (lsp-ui-imenu-enable t)
+  (lsp-ui-imenu-enable nil)
   (lsp-ui-sideline-ignore-duplicate t)
   :after (lsp)
   :config
@@ -897,15 +902,22 @@
          (c++-mode . irony-mode))
   )
 
+(use-package company-irony-c-headers
+  :after (irony company)
+  :straight t
+  )
+
 (use-package company-irony
-  :after irony
+  :after (irony company)
   :straight t
   :hook (irony-mode . (lambda ()
-                        (add-to-list (make-local-variable 'company-backends) 'company-irony))))
+                        (add-to-list (make-local-variable 'company-backends) '(company-irony-c-headers company-irony)))))
+
+
 
 (use-package irony-eldoc
+  :after irony
   :disabled t
-  :straight irony
   :straight t
   :hook irony-mode)
 
@@ -948,8 +960,6 @@
 
 (general-define-key
  "C-w" #'kill-region-or-backward-word
-;;"C-w" 'backward-kill-word
- "C-x C-k" 'kill-region
  "C-x O" '(other-window-prev :which-key "previous window")
  ;; use hippie-expand instead of dabbrev
  "M-/" 'hippie-expand
