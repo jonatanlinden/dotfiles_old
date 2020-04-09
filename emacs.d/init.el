@@ -690,7 +690,7 @@
   (flycheck-checker-error-threshold 1605)
   (flycheck-check-syntax-automatically '(save))
   (flycheck-mode-line-prefix "FC")
-  :init (global-flycheck-mode t))
+  :hook (prog-mode . flycheck-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; LANGUAGES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1221,6 +1221,23 @@
   (make-local-variable 'company-backends)
   (push 'company-cmake company-backends)
   :mode "CMakeLists.txt")
+
+(use-package toml-mode
+  :straight t
+  )
+
+(use-package rust-mode
+  :straight t
+  :hook (rust-mode . lsp))
+
+;; Add keybindings for interacting with Cargo
+(use-package cargo
+  :straight t
+  :hook (rust-mode . cargo-minor-mode))
+
+(use-package flycheck-rust
+  :straight t
+  :config (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
 
 (use-package multiple-cursors
   :straight t
