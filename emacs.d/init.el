@@ -283,6 +283,8 @@
   (sp-autoskip-closing-pair 'always)
   (sp-hybrid-kill-entire-symbol nil)
   (sp-show-pair-delay 0)
+  :init
+  (unbind-key "M-?" smartparens-mode-map)
   :config
   (require 'smartparens-config)
   (smartparens-global-mode t)
@@ -716,9 +718,6 @@
 (use-package lsp-ui
   :straight t
   :custom
-  (lsp-ui-sideline-enable nil)
-  (lsp-ui-doc-enable nil)
-  (lsp-ui-imenu-enable nil)
   (lsp-ui-sideline-ignore-duplicate t)
   :after (lsp)
   :config
