@@ -40,14 +40,6 @@
 (when (fboundp 'scroll-bar-mode)
   (scroll-bar-mode -1))
 
-;; disable temporarily
-(defvar jl/file-name-handler-alist file-name-handler-alist)
-(setq file-name-handler-alist nil)
-;; restore it after initialization
-(add-hook 'after-init-hook
-  (lambda ()
-    (setq file-name-handler-alist jl/file-name-handler-alist)))
-
 ;; try the following for unicode characters
 ;; (setq inhibit-compacting-font-caches t)
 

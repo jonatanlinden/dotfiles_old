@@ -10,6 +10,15 @@
 (when (eval-when-compile (version< emacs-version "27"))
   (load "~/.emacs.d/early-init.el"))
 
+;; disable temporarily
+(defvar jl/file-name-handler-alist file-name-handler-alist)
+(setq file-name-handler-alist nil)
+;; restore it after initialization
+(add-hook 'after-init-hook
+  (lambda ()
+    (setq file-name-handler-alist jl/file-name-handler-alist)))
+
+
 (when (memq window-system '(mac ns))
   (add-to-list 'default-frame-alist '(ns-appearance . light))
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
@@ -186,6 +195,15 @@
 
 (use-package bind-key
   :straight t)
+
+;; The command ‘delete-forward-char’ is preferable for interactive
+;; use, e.g.  because it respects values of ‘delete-active-region’ and
+;; ‘overwrite-mode’.
+(bind-key [remap delete-char] 'delete-forward-char)
+;; Better than default - from /u/zck
+(bind-key "M-c" 'capitalize-dwim)
+(bind-key "M-l" 'downcase-dwim)
+(bind-key "M-u" 'upcase-dwim)
 
 (straight-use-package 'no-littering)
 (require 'no-littering)
@@ -416,28 +434,14 @@
   ("M-z" . avy-zap-to-char-dwim)
   ("M-z" . avy-zap-up-to-char-dwim))
 
-;; needed to tweak the matching algorithm used by ivy
-(use-package flx
-  :defer t
-  :straight t)
-
 (use-package amx
   :straight t
   :bind (("<remap> <execute-extended-command>" . amx)))
 
 
-;; use flx matching instead of the default
-;; see https://oremacs.com/2016/01/06/ivy-flx/ for details
-;;(setq ivy-re-builders-alist
-;;'((t . ivy--regex-fuzzy)))
-                                        ;(setq ivy-initial-inputs-alist nil)
-                                        ;(setq enable-recursive-minibuffers t)
-
 ;; saveplace remembers your location in a file when saving files
 (use-package saveplace
   :hook (after-init . save-place-mode))
-
-
 
 (use-package ivy
   :straight t
@@ -503,6 +507,11 @@
 
 ;; TODO: use https://github.com/yqrashawn/counsel-fd.git
 ;; after having straight.el
+
+(use-package ivy-prescient
+  :after counsel
+  :straight t
+  :hook (after-init . ivy-prescient-mode))
 
 ;; temporarily highlight changes from yanking, etc
 (use-package volatile-highlights
@@ -941,6 +950,9 @@
   :after c++-mode
   :straight t)
 
+(use-package spell-fu
+  :straight t
+  :hook (prog-mode . spell-fu-mode))
 
 (use-package general
   :straight t
@@ -958,7 +970,7 @@
 
 
 (general-define-key
- "C-w" #'kill-region-or-backward-word
+ "C-w" 'kill-region-or-backward-word
  "C-x O" '(other-window-prev :which-key "previous window")
  ;; use hippie-expand instead of dabbrev
  "M-/" 'hippie-expand
@@ -973,6 +985,10 @@
 (general-define-key
  :keymaps 'prog-mode-map
  "s-f" 'mark-defun)
+
+(use-package mark-thing-at
+  :straight t
+  :hook (after-init . mark-thing-at-mode))
 
 ;;; open current file in explorer/finder
 (when *is-win*
@@ -1228,13 +1244,13 @@
 ;; https://github.com/syohex/emacs-git-messenger
 (use-package git-messenger
   :straight t
+  :custom (git-messenger:use-magit-popup t)
   :bind
   (("C-c g m" . git-messenger:popup-message)
    :map git-messenger-map
    ([(return)] . git-messenger:popup-close))
   :config
   ;; Enable magit-show-commit instead of pop-to-buffer
-  (setq git-messenger:use-magit-popup t)
   (setq git-messenger:show-detail t))
 
 (use-package git-timemachine
