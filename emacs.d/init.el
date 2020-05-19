@@ -505,8 +505,9 @@
    :map counsel-find-file-map
    ("C-w" . counsel-up-directory)))
 
-;; TODO: use https://github.com/yqrashawn/counsel-fd.git
-;; after having straight.el
+
+(use-package wgrep
+  :straight t)
 
 (use-package ivy-prescient
   :after counsel
@@ -565,8 +566,6 @@
   (company-global-modes '(not text-mode))
   (company-idle-delay 0.2) ; decrease delay before autocompletion popup shows
   (company-dabbrev-downcase nil)
-  (company-tooltip-limit 10)
-  (company-tooltip-flip-when-above t)
   (company-echo-delay 0) ; remove annoying blinking
     ;; set default `company-backends'
   (company-backends
@@ -583,9 +582,9 @@
   )
 
 (use-package company-prescient
-  :after company
+  :after (prescient company)
   :straight t
-  :config (company-prescient-mode))
+  :hook (company-mode . company-prescient-mode))
 
 (defun jl/prog-mode-hook ()
   (make-local-variable 'company-backends)
@@ -644,7 +643,6 @@
   :commands (discover-my-major discover-my-mode)
   )
 
-
 (use-package undo-tree
   :straight t
   :diminish undo-tree-mode
@@ -657,8 +655,7 @@
   :bind
   (("C-z" . 'undo)
    ("C-S-z" . 'undo-tree-redo))
-  :config
-  (global-undo-tree-mode))
+  :hook (after-init . global-undo-tree-mode))
 
 (use-package projectile
   :straight t
@@ -666,21 +663,26 @@
   (projectile-mode-line-prefix " P")
   (projectile-completion-system 'ivy)
   (projectile-enable-caching t)
+  (projectile-indexing-method 'alien)
   (projectile-svn-command "find . -type f -not -iwholename '*.svn/*' -print0")
   ;; on windows,
   :bind
   (:map projectile-mode-map
         ("s-p" . projectile-command-map)
         ("s-p r" . projectile-ripgrep))
-  :init
-  (setq projectile-indexing-method 'alien)
-  (projectile-mode +1))
+  :init (projectile-mode +1)
+  )
 
 (use-package counsel-projectile
   :straight t
   :after (projectile counsel)
-  :config
-  (counsel-projectile-mode))
+  :hook
+  (after-init . counsel-projectile-mode))
+
+(use-package counsel-fd
+  :straight t
+  :after counsel
+  :commands (counsel-fd-dired-jump counsel-fd-file-jump))
 
 (use-package flycheck
   :straight t
@@ -694,9 +696,31 @@
 
 (use-package lsp-mode
   :straight t
-  :custom (lsp-prefer-flymake nil)
+  :custom
+  (lsp-prefer-flymake nil)
+  ;;(lsp-auto-configure nil)
   :commands lsp
-  :hook (ruby-mode . lsp))
+  :hook ((ruby-mode . lsp)
+         (lsp-mode . lsp-enable-which-key-integration)
+         ))
+
+;; lsp-ui: This contains all the higher level UI modules of lsp-mode, like flycheck support and code lenses.
+;; https://github.com/emacs-lsp/lsp-ui
+(use-package lsp-ui
+  :disabled t
+  :straight t
+  :custom
+  (lsp-ui-sideline-enable nil)
+  (lsp-ui-doc-enable nil)
+  :after (lsp)
+  :bind  (:map lsp-ui-mode-map
+               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+               ([remap xref-find-references] . lsp-ui-peek-find-references)
+               )
+  :config
+  (lsp-ui-sideline-mode)
+  )
+
 
 (use-package company-lsp
   :straight t
@@ -708,30 +732,6 @@
   (company-transformers nil)
   (company-lsp-enable-snippet t)
   (company-lsp-cache-candidates nil)
-  :init
-  (with-eval-after-load 'company-mode
-    (general-pushnew
-     '(company-lsp
-       company-files
-       company-dabbrev-code
-;       company-gtags
-       ;company-etags
-       company-keywords
-       :with company-yasnippet)
-     company-backends))
-  )
-
-
-;; lsp-ui: This contains all the higher level UI modules of lsp-mode, like flycheck support and code lenses.
-;; https://github.com/emacs-lsp/lsp-ui
-(use-package lsp-ui
-  :straight t
-  :custom
-  (lsp-ui-sideline-ignore-duplicate t)
-  :after (lsp)
-  :config
-  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
-  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
   )
 
 (use-package flycheck-clang-tidy
@@ -782,6 +782,10 @@
   :custom (markdown-fontify-code-block-natively t)
     :mode (("\\.md\\'" . gfm-mode)
            ("\\.markdown\\'" . gfm-mode)))
+
+(use-package yaml-mode
+  :straight t
+  :mode ("\\.yaml\\'" "\\.yml\\'"))
 
 (use-package css-mode
   :mode ("\\.css\\'" "\\.scss\\'" "\\.sass\\'")
@@ -951,7 +955,9 @@
   :straight t)
 
 (use-package spell-fu
+  :disabled t
   :straight t
+  :init (setq ispell-dictionary "en_US")
   :hook (prog-mode . spell-fu-mode))
 
 (use-package general
@@ -1102,13 +1108,20 @@
 (use-package eldoc
   :diminish eldoc-mode)
 
+;;(use-package yasnippet-snippets
+;;  :straight t)
+
 (use-package yasnippet
   :straight t
   :diminish yas-minor-mode
   :commands (yas-minor-mode)
-  :hook (prog-mode . yas-minor-mode)
-  :config (yas-reload-all)
-  )
+  :hook
+  (prog-mode . yas-minor-mode)
+  ;; (yas-minor-mode . (lambda ()
+  ;;                     (add-to-list
+  ;;                      'yas-snippet-dirs
+  ;;                      (concat user-emacs-directory "snippets"))))
+  :config (yas-reload-all))
 
 
 (use-package arm-lookup
