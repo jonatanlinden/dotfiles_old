@@ -1243,6 +1243,8 @@
 
 (use-package magit
   :straight t
+  :custom (magit-section-initial-visibility-alist
+           '((stashes . hide) (untracked . hide)))
   :bind (("C-x g" . magit-status)
          ("C-c g l" . magit-list-repositories)
          )
