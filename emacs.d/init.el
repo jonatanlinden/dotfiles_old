@@ -690,6 +690,8 @@
   (flycheck-checker-error-threshold 1605)
   (flycheck-check-syntax-automatically '(save))
   (flycheck-mode-line-prefix "FC")
+  :config
+  (add-to-list 'flycheck-disabled-checkers 'ruby-reek)
   :hook (prog-mode . flycheck-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; LANGUAGES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -721,7 +723,6 @@
   (lsp-ui-sideline-mode)
   )
 
-
 (use-package company-lsp
   :straight t
   :after (company lsp-mode)
@@ -752,11 +753,11 @@
 (use-package ruby-mode
   :straight t
   :custom (ruby-align-chained-calls t)
-  :init
-  (add-to-list 'flycheck-disabled-checkers 'ruby-reek)
   :config
   (use-package smartparens-ruby)
-  :hook (ruby-mode . subword-mode)
+  :hook
+  (ruby-mode . subword-mode)
+  (ruby-mode . lsp)
   :interpreter "ruby"
   :bind
   (([(meta down)] . ruby-forward-sexp)
@@ -1236,8 +1237,9 @@
   :hook (rust-mode . cargo-minor-mode))
 
 (use-package flycheck-rust
+  :after rust
   :straight t
-  :config (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+  :hook (flycheck-mode . flycheck-rust-setup))
 
 (use-package multiple-cursors
   :straight t
