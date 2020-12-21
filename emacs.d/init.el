@@ -63,6 +63,24 @@
        w32-apps-modifier 'hyper) ;; Menu key
   )
 
+;; use right option as macos option key
+(when *is-mac*
+  (setq ns-right-alternate-modifier 'none))
+
+(setq delete-by-moving-to-trash t)
+(when *is-mac* (setq trash-directory "~/.Trash")) ;; not necessary on windows
+
+(defun jl/apply-theme (appearance)
+  "Load theme, taking current system APPEARANCE into consideration."
+  (mapc #'disable-theme custom-enabled-themes)
+  (pcase appearance
+    ('light (load-theme 'solarized-light t))
+    ('dark (load-theme 'solarized-dark t))))
+
+(when *is-mac*
+  (add-hook 'ns-system-appearance-change-functions #'jl/apply-theme))
+
+
 (when *is-win*
   (progn
     (w32-register-hot-key [s-r])
@@ -293,6 +311,8 @@
   (show-paren-when-point-inside-paren t)
   (show-paren-when-point-in-periphery t))
 
+;; note: in macos, disable shortcuts for mission control to make
+;; <c-left> and <c-right> to work correctly
 (use-package smartparens
   :straight t
   :hook ((lisp-mode emacs-lisp-mode) . smartparens-strict-mode)
@@ -1248,12 +1268,6 @@
          ("C-<" . mc/mark-previous-like-this-symbol)
          ("M-C->" . mc/mark-next-like-this-word))
   )
-
-
-
-(setq delete-by-moving-to-trash t)
-(when *is-mac* (setq trash-directory "~/.Trash")) ;; not necessary on windows
-
 
 (defun jl/magit-log-edit-mode-hook ()
   (setq fill-column 72)
