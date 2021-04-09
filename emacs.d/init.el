@@ -55,6 +55,10 @@
 (setq auth-sources
     '((:source "~/.emacs.d/.authinfo.gpg")))
 
+;; Home directory is default
+(setq default-directory "~/")
+(setq command-line-default-directory "~/")
+
 (when *is-win*
   (setq w32-pass-lwindow-to-system nil
        w32-pass-rwindow-to-system nil
@@ -766,7 +770,7 @@
 (use-package inf-ruby
   :straight t
   :config
-  (add-to-list 'inf-ruby-implementations '("ruby" . "irb-2.3.1 --prompt default --noreadline -r irb/completion"))
+  ; (add-to-list 'inf-ruby-implementations '("ruby" . "irb --prompt default --noreadline -r irb/completion"))
   (setq inf-ruby-default-implementation "ruby")
   :hook (ruby-mode . inf-ruby-minor-mode))
 
