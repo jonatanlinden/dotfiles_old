@@ -9,3 +9,4 @@ export TERM="xterm-256color"
 
 # brew zsh-completions
 fpath=(/usr/local/share/zsh/site-functions $fpath)
+source "$HOME/.cargo/env"
