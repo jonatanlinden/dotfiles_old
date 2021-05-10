@@ -276,7 +276,7 @@
   :if (memq window-system '(mac ns x))
   :straight t
   ;; make it faster (assuming all envs in .zshenv)
-  :custom (exec-path-from-shell-arguments '("-l" "-d"))
+  :custom (exec-path-from-shell-arguments '("-l"))
   :config
   (exec-path-from-shell-copy-envs '("LC_ALL" "PYTHONPATH"))
   (exec-path-from-shell-initialize))
@@ -712,13 +712,18 @@
   :hook
   (after-init . counsel-projectile-mode))
 
-
 (use-package find-file-in-project
   :straight t
   :custom (ffip-use-rust-fd t)
   :bind (("s-f" . find-file-in-project)
          ("s-F". find-file-in-current-directory)
          ("M-s-f" . find-file-in-project-by-selected)))
+
+(use-package editorconfig
+  :straight t
+  :config
+  (editorconfig-mode 1))
+
 
 (use-package counsel-fd
   :straight t
@@ -842,21 +847,23 @@
 (defun jl/web-mode-hook ()
   "Hooks for Web mode."
   (progn
-    (setq web-mode-markup-indent-offset 2)
     (web-mode-edit-element-minor-mode))
   )
 
 (use-package web-mode
   :straight t
-  :custom (web-mode-css-indent-offset 2)
+  :mode ("\\.html\\'")
+  :custom
+  (web-mode-css-indent-offset 2)
+  (web-mode-markup-indent-offset 2)
+  (web-mode-code-indent-offset 2)
+  (web-mode-enable-auto-closing t)
+  (web-mode-tag-auto-close-style 2)
+  (web-mode-enable-auto-quoting t)
   :config
-  (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
   (setq web-mode-ac-sources-alist
         '(("css" . (ac-source-css-property))
           ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
-  (setq web-mode-enable-auto-closing t)
-  (setq web-mode-tag-auto-close-style 2)
-  (setq web-mode-enable-auto-quoting t)
   (use-package web-mode-edit-element :straight t)
   :hook (web-mode . jl/web-mode-hook))
 

@@ -51,6 +51,8 @@ select-word-style default
 zstyle ':zle:*' word-chars " /:@+|"
 zstyle ':zle:*' word-style unspecified
 
+# after modifying ~/.zsh_plugins, run:
+# antibody bundle < ~/.zsh_plugins.txt > ~/.zsh_plugins.sh
 source ~/.zsh_plugins.sh
 
 RPROMPT='$(nvm_prompt_info)'
@@ -128,15 +130,10 @@ function cropopen; {
     pdfcrop --resolution 72 "$1" && open "${1:t:r}-crop.pdf"
 }
 
-
-alias cat=ccat
-
-# Enable ls colors
-export LSCOLORS="Gxfxcxdxbxegedabagacad"
-
-alias ls='ls -G'
-alias ll='ls -lh'
-alias la='ls -lAh'
+# replace with some rust replacements
+alias cat=bat
+alias ls=exa
+alias ll='exa -l'
 alias zmv='noglob zmv -W'
 
 alias brewall="brew list | while read cask; do echo -n $cask; brew deps $cask | awk '{printf(\" %s \", ${0})}'; echo ''; done"
@@ -149,6 +146,6 @@ rbenv() {
   rbenv "$@"
 }
 
-# zprof
+eval "$(zoxide init zsh)"
 
-# export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+# zprof
