@@ -1,9 +1,8 @@
-;;; early-init.el --- -*- lexical-binding: t -*-
+;;; early-init.el --- early bird  -*- no-byte-compile: t; lexical-binding: t -*-
 
 ;; reduce the frequency of garbage collection by making it happen on
 ;; each 50MB of allocated data (the default is on every 0.76MB)
 (setq gc-cons-threshold (* 128 1024 1024))
-
 
 (defvar before-init-time (current-time) "Time when init.el was started.")
 
@@ -31,6 +30,8 @@
 (defvar *is-win* (eq system-type 'windows-nt))
 
 
+
+
 (when (fboundp 'tool-bar-mode)
   (tool-bar-mode -1))
 
@@ -39,6 +40,9 @@
 
 (when (fboundp 'scroll-bar-mode)
   (scroll-bar-mode -1))
+
+;; Always load newest byte code
+(setq load-prefer-newer t)
 
 ;; try the following for unicode characters
 ;; (setq inhibit-compacting-font-caches t)

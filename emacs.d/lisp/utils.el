@@ -11,16 +11,15 @@
       (eval-region (min (point) (mark)) (max (point) (mark)))
     (pp-eval-last-sexp prefix)))
 
-(defun jl/recompile-elc-on-save ()
-  "Recompile your elc when saving an elisp file."
-  (add-hook 'after-save-hook
-            (lambda ()
-              (when (and
-                     (string-prefix-p jonatan-personal-dir (file-truename buffer-file-name))
-                     (file-exists-p (byte-compile-dest-file buffer-file-name)))
-                (emacs-lisp-byte-compile)))
-            nil
-            t))
+;; Best of both worlds
+(defun kill-region-or-backward-word ()
+  "Kill the region if active, otherwise kill the word before point."
+  (interactive)
+  (if (region-active-p)
+      (kill-region (region-beginning) (region-end))
+    (if (and (boundp 'subword-mode) subword-mode)
+        (subword-backward-kill 1)
+      (backward-kill-word 1))))
 
 (provide 'utils)
 ;;; utils.el ends here

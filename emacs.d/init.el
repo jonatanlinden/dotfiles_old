@@ -7,8 +7,6 @@
 ;;(message
 ;; (mapconcat (quote identity)
 ;;            (sort (font-family-list) #'string-lessp) "\n"))
-(when (eval-when-compile (version< emacs-version "27"))
-  (load "~/.emacs.d/early-init.el"))
 
 ;; disable temporarily
 (defvar jl/file-name-handler-alist file-name-handler-alist)
@@ -87,10 +85,7 @@
 
 (when *is-win*
   (progn
-    (w32-register-hot-key [s-r])
-    (w32-register-hot-key [s-p])
-    (w32-register-hot-key [s-f])
-    (w32-register-hot-key [s-0])
+    (w32-register-hot-key [s-])
     ))
 
 
@@ -111,9 +106,6 @@
   `(funcall (or (get ',variable 'custom-set)
                 'set-default)
             ',variable ,value))
-
-;; Always load newest byte code
-(setq load-prefer-newer t)
 
 ;; warn when opening files bigger than 10MB
 (setq large-file-warning-threshold 10000000)
@@ -207,7 +199,10 @@
 
 (straight-use-package 'use-package)
 
-(setq use-package-verbose t)
+(setq use-package-verbose t
+      ;; use-package-compute-statistics t
+      use-package-minimum-reported-time 0.05
+      )
 
 (eval-when-compile
   (require 'use-package))
@@ -227,11 +222,16 @@
 (bind-key "M-l" 'downcase-dwim)
 (bind-key "M-u" 'upcase-dwim)
 
-(straight-use-package 'no-littering)
-(require 'no-littering)
-(setq auto-save-file-name-transforms
-      `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
-(setq custom-file (no-littering-expand-etc-file-name "custom.el"))
+
+;(straight-use-package 'no-littering)
+                                        ;(require 'no-littering)
+(use-package no-littering
+  :straight t
+  :init
+  (setq auto-save-file-name-transforms
+        `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))
+        custom-file (no-littering-expand-etc-file-name "custom.el")))
+
 (load custom-file)
 
 ;; load the personal settings
@@ -241,8 +241,12 @@
 
 (use-package utils
   :load-path "lisp"
-  :bind (:map emacs-lisp-mode-map
-              ([remap eval-last-sexp] . 'jl/eval-last-sexp-or-region)))
+  :commands (kill-region-or-backward-word)
+  :bind (("C-w" . kill-region-or-backward-word)
+         (:map emacs-lisp-mode-map
+               ([remap eval-last-sexp] . jl/eval-last-sexp-or-region))
+         )
+  )
 
 ;; manage elpa keys
 (use-package gnu-elpa-keyring-update
@@ -279,6 +283,14 @@
 
 (use-package solarized-theme
   :straight t
+  :custom
+  (solarized-scale-org-headlines nil)
+  (solarized-use-variable-pitch nil)
+  (solarized-height-minus-1 1)
+  (solarized-height-plus-1 1)
+  (solarized-height-plus-2 1)
+  (solarized-height-plus-3 1)
+  (solarized-height-plus-4 1)
   :init
   (load-theme 'solarized-light t)
   ;;(set-face-background 'default "#fdfdf0")
@@ -325,12 +337,11 @@
   (sp-autoskip-closing-pair 'always)
   (sp-hybrid-kill-entire-symbol nil)
   (sp-show-pair-delay 0)
-  :init
-  (unbind-key "M-?" smartparens-mode-map)
   :config
   (require 'smartparens-config)
   (smartparens-global-mode t)
   (sp-use-paredit-bindings)
+  (unbind-key "M-?" smartparens-mode-map)
   (show-smartparens-global-mode +1)
   ;; :diminish (smartparens-mode .  "()")
   :diminish smartparens-mode)
@@ -470,6 +481,7 @@
 (use-package ivy
   :straight t
   :diminish
+
   :custom
   (ivy-extra-directories nil)
   (ivy-use-virtual-buffers t)
@@ -492,7 +504,6 @@
   (("s-w" . ace-window)
    ;([remap other-window] . ace-window))
    ))
-
 
 (use-package swiper
   :straight t
@@ -547,13 +558,10 @@
   )
 
 
-(use-package fd-dired
-  :straight (fd-dired :type git :host github :repo "yqrashawn/fd-dired")
-  :commands fd-dired
-)
-
-;;(use-package counsel-fd
-;;  :ensure t)
+;; (use-package fd-dired
+;;   :straight (fd-dired :type git :host github :repo "yqrashawn/fd-dired")
+;;   :commands fd-dired
+;; )
 
 (use-package dired
   :custom
@@ -566,6 +574,7 @@
 (use-package dired-x
   :after dired
   :bind ("C-x C-j" . dired-jump))
+
 (use-package dired-plus
   :straight t
   :after dired
@@ -703,6 +712,14 @@
   :hook
   (after-init . counsel-projectile-mode))
 
+
+(use-package find-file-in-project
+  :straight t
+  :custom (ffip-use-rust-fd t)
+  :bind (("s-f" . find-file-in-project)
+         ("s-F". find-file-in-current-directory)
+         ("M-s-f" . find-file-in-project-by-selected)))
+
 (use-package counsel-fd
   :straight t
   :after counsel
@@ -723,6 +740,7 @@
 (use-package lsp-mode
   :straight t
   :custom
+  (lsp-headerline-breadcrumb-enable nil)
   (lsp-prefer-flymake nil)
   ;;(lsp-auto-configure nil)
   :commands lsp
@@ -747,17 +765,9 @@
   (lsp-ui-sideline-mode)
   )
 
-(use-package company-lsp
+(use-package lsp-treemacs
   :straight t
-  :after (company lsp-mode)
-  :commands company-lsp
-  :custom
-  (company-lsp-async t)
-  (company-lsp-enable-recompletion t)
-  (company-transformers nil)
-  (company-lsp-enable-snippet t)
-  (company-lsp-cache-candidates nil)
-  )
+  :after lsp-mode)
 
 (use-package flycheck-clang-tidy
   :straight t
@@ -765,12 +775,17 @@
   :custom (flycheck-clang-tidy-build-path "../../build")
   :after (flycheck)
   :hook (c++-mode . flycheck-clang-tidy-setup)
-)
+  )
+
+(use-package groovy-mode
+  :straight t
+  :mode ("Jenkinsfile" "\\.groovy\\'" )
+  )
 
 (use-package inf-ruby
   :straight t
   :config
-  ; (add-to-list 'inf-ruby-implementations '("ruby" . "irb --prompt default --noreadline -r irb/completion"))
+  (add-to-list 'inf-ruby-implementations '("ruby" . "irb --prompt default --noreadline -r irb/completion"))
   (setq inf-ruby-default-implementation "ruby")
   :hook (ruby-mode . inf-ruby-minor-mode))
 
@@ -887,8 +902,12 @@
 
 (setq gud-gdb-command-name "gdb-multiarch -i=mi --annotate=1")
 
-;;(defun jl/asm-mode-hook ()
-  ;; you can use `comment-dwim' (M-;) for this kind of behaviour anyway
+(use-package asm-mode
+  :custom (tab-width 8)
+  ;;:config (setq asm-comment-char ?#)
+)
+
+;; you can use `comment-dwim' (M-;) for this kind of behaviour anyway
 ;;(local-unset-key (vector asm-comment-char))
   ;; asm-mode sets it locally to nil, to "stay closer to the old TAB behaviour".
 ;;  (setq tab-always-indent (default-value 'tab-always-indent)
@@ -989,16 +1008,6 @@
   :straight t
 )
 
-;; Best of both worlds
-(defun kill-region-or-backward-word ()
-  "Kill the region if active, otherwise kill the word before point."
-  (interactive)
-  (if (region-active-p)
-      (kill-region (region-beginning) (region-end))
-    (if (and (boundp 'subword-mode) subword-mode)
-        (subword-backward-kill 1)
-      (backward-kill-word 1))))
-
 
 (general-define-key
  "C-w" 'kill-region-or-backward-word
@@ -1090,6 +1099,8 @@
 ;; edit grep-buffers, e.g., ivy-occur
 (use-package wgrep
   :commands wgrep-mode
+  :init (add-hook 'ivy-occur-grep-mode-hook
+	                (lambda () (toggle-truncate-lines 1)))
   ;:init (add-hook 'ivy-occur-grep-mode-hook (lambda ()
   ;(key-chord-define wgrep-mode-map "dd" 'wgrep-mark-deletion)))
   )
@@ -1105,7 +1116,6 @@
 
 (defun jl/el-mode-hook ()
   (message "el-mode-hook")
-  (jl/recompile-elc-on-save)
   (smartparens-strict-mode +1)
   (rainbow-delimiters-mode +1)
   )
@@ -1187,8 +1197,9 @@
            (file+headline "d:/work/notes/todo.org" "Tasks")
            "* TODO %i%? %a")
           ))
-  (setq org-todo-keywords '((sequence "TODO" "IN PROGRESS" "|" "DONE")))
-  :hook (org-mode . visual-line-mode))
+  (setq org-todo-keywords '((sequence "OPEN" "IN PROGRESS" "|" "CLOSED")))
+  ;; :hook (org-mode . visual-line-mode) Doesn't play nice with ejira
+  )
 
 ;; (use-package mixed-pitch
 ;;   :straight t
@@ -1208,9 +1219,9 @@
 
 (setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
 
-(use-package ox-mediawiki
+(use-package ox-pandoc
   :straight t
-  :after (org mediawiki)
+  :after org
   )
 
 (csetq ffap-machine-p-known 'reject)
@@ -1220,8 +1231,7 @@
   :commands (mediawiki-mode)
   :init
   ;; workaround, unable to run mediawiki-open otherwise
-  (setq url-user-agent "EMACS" ;
-        )
+   (setq url-user-agent "EMACS")
   :hook (mediawiki-mode . visual-line-mode)
   )
 
@@ -1249,6 +1259,7 @@
 
 (use-package toml-mode
   :straight t
+  :mode ("\\.toml\\'")
   )
 
 (use-package rust-mode
@@ -1373,6 +1384,7 @@
   :custom
   (dumb-jump-selector 'ivy)
   :config (add-to-list 'dumb-jump-language-file-exts '(:language "c++" :ext "tg" :agtype "cc" :rgtype "c"))
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
   :bind (("M-g j" . dumb-jump-go)
          ("M-g i" . dumb-jump-go-prompt)
          ("M-g q" . dumb-jump-quick-look)))
